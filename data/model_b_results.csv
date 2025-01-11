@@ -1,0 +1,414 @@
+index,inclusion_decision,review_comments,corrected_P,corrected_I,corrected_C,corrected_O,corrected_S
+30,False,The intervention does not match the focus on immunotherapy or targeted therapy,-,-,-,-,-
+31,False,Population does not match hepatocellular carcinoma,-,-,-,-,-
+32,True,Matches all PICOS criteria,-,-,-,-,-
+33,False,Study design is retrospective and not a randomized controlled trial,-,-,-,-,-
+34,True,Matches all PICOS criteria,-,-,-,-,-
+35,False,Comparison group not specified,-,-,-,-,-
+36,False,Comparison group not specified,-,-,-,-,-
+37,False,Comparison group not specified,-,-,-,-,-
+38,False,Comparison group not specified,-,-,-,-,-
+39,False,Study design is retrospective and not a randomized controlled trial,-,-,-,-,-
+0,True,Meets all PICOS criteria. Clear RCT comparing adjuvant atezolizumab plus bevacizumab to active surveillance in high-risk HCC patients post resection or ablation.,-,-,-,-,-
+1,False,"Population does not match target criteria as it focuses on biliary tract cancer, not hepatocellular carcinoma.",patients with advanced biliary tract cancer,-,-,-,-
+2,True,Meets all PICOS criteria. Clear RCT comparing STRIDE to sorafenib in unresectable HCC patients.,-,-,-,-,-
+3,True,Meets all PICOS criteria. Clear RCT comparing camrelizumab plus rivoceranib to sorafenib in unresectable or metastatic HCC patients.,-,-,-,-,-
+4,False,Comparison and study design not specified. Lacks a clear comparator and does not specify the study design.,-,-,not specified,-,not specified
+5,True,Meets all PICOS criteria. Clear RCT comparing tislelizumab to sorafenib in unresectable HCC patients.,-,-,-,-,-
+6,False,"Does not meet PICOS criteria. Observational study focusing on liver MRI PDFF and liver disease risk, not an intervention for HCC.",not specified,not specified,not specified,liver disease risk,observational study
+7,False,Comparison and study design not specified. Focuses on pharmacokinetics without a clear comparator or study design.,-,-,not specified,-,not specified
+8,True,Meets all PICOS criteria. Clear RCT comparing lenvatinib plus pembrolizumab to lenvatinib plus placebo in unresectable HCC patients.,-,-,-,-,-
+9,False,"Population does not match target criteria as it focuses on MASLD without cirrhosis, not HCC.",adults with MASLD without cirrhosis,-,-,-,-
+40,False,Intervention and comparison not specified. Study design does not match criteria.,-,-,-,-,-
+41,True,"Matches all PICOS criteria. Clear intervention, comparison, and outcomes.",-,-,-,-,-
+42,False,Intervention and comparison not specified. Study design does not match criteria.,-,-,-,-,-
+43,False,Intervention and comparison not specified. Study design does not match criteria.,-,-,-,-,-
+44,False,Population and intervention do not match target criteria for HCC treatment outcomes.,-,-,-,-,-
+45,False,Intervention and comparison not specified. Study design does not match criteria.,-,-,-,-,-
+46,True,"Matches all PICOS criteria. Clear intervention, comparison, and outcomes.",-,-,-,-,-
+47,False,Comparison not specified. Study design does not fully match criteria.,-,-,-,-,-
+48,False,Population does not match target criteria for general HCC treatment outcomes.,-,-,-,-,-
+49,False,Comparison not specified. Study design does not match criteria.,-,-,-,-,-
+10,False,Intervention and comparison do not match the target criteria of immunotherapy or targeted therapy versus standard therapy or placebo,-,-,-,-,-
+11,True,"Meets all target criteria: population, intervention, comparison, outcome, and study design",-,-,-,-,-
+12,False,"Does not meet the target criteria for intervention, comparison, outcome, or study design",-,-,-,-,-
+13,False,"Does not meet the target criteria for intervention, comparison, outcome, or study design",-,-,-,-,-
+14,False,Intervention and comparison do not match the target criteria of immunotherapy or targeted therapy versus standard therapy or placebo,-,-,-,-,-
+15,False,Population and outcome do not match the target criteria,-,-,-,-,-
+16,False,Comparison and study design do not match the target criteria,-,-,-,-,-
+17,False,Comparison and study design do not match the target criteria,-,-,-,-,-
+18,True,"Meets all target criteria: population, intervention, comparison, outcome, and study design",-,-,-,-,-
+19,False,Comparison and study design do not match the target criteria,-,-,-,-,-
+60,False,"The intervention is palliative care, not immunotherapy or targeted therapy. The study design is a pragmatic cluster-based RCT which may not align with the specific focus on immunotherapy or targeted therapies.",-,-,-,-,-
+61,False,"The population is people with HIV, not HCC patients. The study design is an observational cohort study, not an RCT.",-,-,-,-,-
+62,False,"The intervention is liver resection, not immunotherapy or targeted therapy. The study design is retrospective, not an RCT.",-,-,-,-,-
+63,False,"The intervention is diagnostic (contrast-enhanced US), not therapeutic. The study design is a prospective multicenter trial, not an RCT.",-,-,-,-,-
+64,False,"The intervention is surgical (hepatectomy), not immunotherapy or targeted therapy. The study design is retrospective, not an RCT.",-,-,-,-,-
+65,True,Matches all target PICOS criteria. The study compares SOR-TACE to TACE alone in patients with recurrent intermediate-stage HCC.,-,-,-,-,-
+66,True,Matches all target PICOS criteria. The study evaluates nivolumab plus ipilimumab in advanced HCC patients post-sorafenib treatment.,-,-,-,-,-
+67,False,"The intervention is chemotherapy (FOLFOX4-ATRA), not immunotherapy or targeted therapy.",-,-,-,-,-
+68,False,"The study design is a phase 1b trial, not an RCT.",-,-,-,-,-
+69,False,"The intervention is not specified and the study design is a prospective cohort study, not an RCT.",-,-,-,-,-
+20,False,Lacks a comparison group and is not a randomized controlled trial,-,-,-,-,-
+21,False,Single-arm study with no comparison to standard therapy or placebo,-,-,-,-,-
+22,False,Observational study with no intervention or comparison specified,-,-,-,-,-
+23,True,"Meets all PICOS criteria with a clear population, intervention, comparison, outcome, and randomized controlled design",-,-,-,-,-
+24,False,Population does not match the focus on hepatocellular carcinoma; no intervention or comparison specified,-,-,-,-,-
+25,False,No comparison to standard therapy or placebo specified; study design not specified,-,-,-,-,-
+26,False,Single-arm study with no comparison to standard therapy or placebo,-,-,-,-,-
+27,True,"Meets all PICOS criteria with a clear population, intervention, comparison, outcome, and randomized controlled design",-,-,-,-,-
+28,False,Population does not match; no comparison to standard therapy or placebo specified; study design is not randomized controlled trial,-,-,-,-,-
+29,False,Population does not match; no intervention or comparison specified,-,-,-,-,-
+70,False,Population is specific to postmenopausal women which does not match broader criteria. Intervention and comparison are not specified clearly. Study design is observational.,-,-,-,-,-
+71,False,"Population focuses on advanced intrahepatic cholangiocarcinoma, not hepatocellular carcinoma. Intervention partially matches but not specific to HCC. Comparison not specified.",-,-,-,-,-
+72,False,Intervention does not match target criteria as it focuses on TACE and HAIC. Outcome and study design do not align with the primary focus.,-,-,-,-,-
+73,False,Intervention DEB-TACE does not match target criteria. Outcome and study design do not align with the primary focus.,-,-,-,-,-
+74,False,Outcome and study design do not match target criteria. Focuses on organ-specific responses in an observational study.,-,-,-,-,-
+75,True,"All PICOS elements match the target criteria. Population, intervention, comparison, outcome, and study design are appropriate.",-,-,-,-,-
+76,False,Study design is a subanalysis of a trial which does not fully meet criteria. Intervention and comparison partially match.,-,-,-,-,-
+77,True,"All PICOS elements match the target criteria. Population, intervention, comparison, outcome, and study design are appropriate.",-,-,-,-,-
+78,False,Comparison is not specified. Study design is Phase Ib/II which does not fully meet criteria.,-,-,-,-,-
+79,False,Intervention and comparison do not match target criteria. Focus is on imaging techniques rather than therapeutic interventions.,-,-,-,-,-
+50,False,The study does not involve immunotherapy or targeted therapy and lacks a comparison group. It is a retrospective cohort study which does not meet the criteria for randomized controlled trials.,-,-,-,-,-
+51,False,"While it involves anti-angiogenic therapy, there is no direct comparison to immunotherapy or targeted therapy. The study design is a phase III trial but lacks a randomized controlled trial format focusing on survival outcomes.",-,-,-,-,-
+52,False,The study focuses on nonadherence to oral targeted therapy rather than survival or response rates. It is an observational study without a comparison group.,-,-,-,-,-
+53,True,"This study meets all PICOS criteria with a clear population, intervention (cabozantinib plus atezolizumab), comparison (sorafenib), outcome (overall and progression-free survival), and randomized controlled trial design.",-,-,-,-,-
+54,False,"The study aims to diagnose liver cirrhosis using imaging metrics, which is unrelated to survival or response rates. There is no intervention or comparison group.",-,-,-,-,-
+55,False,"The study evaluates the combination of navitoclax and sorafenib in a phase I trial without a comparison group. The primary focus is on safety and efficacy, not specifically on survival or response rates.",-,-,-,-,-
+56,False,"The study assesses cadonilimab plus lenvatinib in a phase Ib/II trial without a comparison group. While it includes survival and response rates, it is not a randomized controlled trial.",-,-,-,-,-
+57,False,"The study evaluates FOLFOX chemotherapy plus lenvatinib and toripalimab in a phase II trial without a comparison group. Although it includes survival and response rates, it is not a randomized controlled trial.",-,-,-,-,-
+58,False,The study investigates antidepressant use in HCC patients but does not involve immunotherapy or targeted therapy. It is a cohort study without a comparison group focused on mortality.,-,-,-,-,-
+59,False,The study compares ultrasound-based versus biomarker-based screening for HCC detection. It is a randomized controlled trial but focuses on screening methods rather than treatment interventions or survival/response outcomes.,-,-,-,-,-
+110,False,Population and intervention match but lacks comparison to standard therapy or placebo. Study design is not a randomized controlled trial.,-,-,-,-,-
+111,False,Population and intervention match but lacks comparison to standard therapy or placebo. Study design is not a randomized controlled trial.,-,-,-,-,-
+112,False,Does not match target PICOS criteria as it focuses on observational research using Mendelian randomization without a specific intervention or comparison.,-,-,-,-,-
+113,False,Population and intervention match but lacks comparison to standard therapy or placebo. Study design is not specified as a randomized controlled trial.,-,-,-,-,-
+114,True,Population and intervention match with a clear comparison to initial surgery. Study design uses propensity score matching which strengthens the analysis.,-,-,-,-,-
+115,False,"Population does not match, intervention is educational rather than therapeutic, and outcomes are not survival or response rate.",-,-,-,-,-
+116,False,"Population does not match, intervention is dietary patterns rather than therapeutic, and study design is not a randomized controlled trial.",-,-,-,-,-
+117,False,Population partially matches but lacks a specified intervention. Study design is not a randomized controlled trial.,-,-,-,-,-
+118,False,Population and intervention match but lacks comparison to standard therapy or placebo. Study design is not a randomized controlled trial.,-,-,-,-,-
+119,False,Population partially matches but lacks a specified intervention. Study design is not a randomized controlled trial.,-,-,-,-,-
+120,False,Intervention is not immunotherapy or targeted therapy and study design is not a randomized controlled trial,-,-,-,-,-
+121,True,Meets criteria as it evaluates immunotherapy combined with radiotherapy in advanced HCC patients,-,-,-,-,-
+122,True,Meets criteria as it evaluates perioperative immunotherapy plus radiotherapy in HCC patients with MVI,-,-,-,-,-
+123,False,Population is not specifically HCC patients and study design is not a randomized controlled trial,-,-,-,-,-
+124,False,Intervention is not immunotherapy or targeted therapy and study design is not a randomized controlled trial,-,-,-,-,-
+125,False,Intervention is not immunotherapy or targeted therapy,-,-,-,-,-
+126,False,Population is not HCC patients and intervention is not related to specified criteria,-,-,-,-,-
+127,True,Meets criteria as it compares Tislelizumab vs Sorafenib for unresectable HCC,-,-,-,-,-
+128,False,Intervention is not immunotherapy or targeted therapy and study design is not a randomized controlled trial,-,-,-,-,-
+129,False,Population is not specifically HCC patients and outcome is not survival or response rate,-,-,-,-,-
+80,False,The intervention and outcomes match the criteria but the study design is a randomized controlled trial which may not fit if the target criteria specify a different design,-,-,-,-,-
+81,True,All PICOS elements match the target criteria. The study compares two interventions in a relevant patient population with appropriate outcomes,-,-,-,-,-
+82,False,The study design is an observational study which does not match the target criteria for a randomized controlled trial,-,-,-,-,-
+83,False,The population and study design do not match the target criteria. The focus is on HCV rather than hepatocellular carcinoma treatment,-,-,-,-,-
+84,False,The study design is a single-arm phase 2 clinical trial which does not meet the criteria for a randomized controlled trial,-,-,-,-,-
+85,False,The study design is a single-arm phase 2 trial which does not meet the criteria for a randomized controlled trial,-,-,-,-,-
+86,True,All PICOS elements match the target criteria. The study compares two interventions in a relevant patient population with appropriate outcomes,-,-,-,-,-
+87,False,The study design is a phase 3 clinical trial focused on biomarkers rather than comparing interventions directly,-,-,-,-,-
+88,False,The study design is a multicenter randomized trial but focuses on psychological harms of surveillance rather than treatment interventions,-,-,-,-,-
+89,False,The study design is a randomized controlled trial but focuses on liver transplantation rather than hepatocellular carcinoma treatment,-,-,-,-,-
+150,False,Population and intervention match but no comparison to standard therapy or placebo. Outcomes focus on safety and tolerability rather than survival or response rate.,-,-,-,-,-
+151,True,"Matches all PICOS criteria with a clear population, intervention, comparison, outcomes, and study design.",-,-,-,-,-
+152,False,Population includes HCC but not exclusively. No comparison to standard therapy or placebo. Outcomes do not include survival or response rate.,-,-,-,-,-
+153,True,"Matches all PICOS criteria with a clear population, intervention, comparison, outcomes, and study design.",-,-,-,-,-
+154,False,Population and study design match but intervention is not immunotherapy or targeted therapy. Outcomes do not include survival or response rate.,-,-,-,-,-
+155,False,Population and outcomes match but interventions are not immunotherapy or targeted therapy.,-,-,-,-,-
+156,False,Population does not specifically include HCC patients. No intervention or comparison specified.,-,-,-,-,-
+157,False,"Population matches but intervention is diagnostic, not therapeutic. No comparison to standard therapy or placebo.",-,-,-,-,-
+158,False,"Population includes liver cancer but not specifically HCC. Intervention is nutritional, not immunotherapy or targeted therapy.",-,-,-,-,-
+159,False,Population and intervention match but no comparison to standard therapy or placebo. Study design is not a randomized controlled trial.,-,-,-,-,-
+100,True,"The analysis incorrectly states that the population and intervention do not match. The study focuses on patients with hepatitis B and a nurse-led decision counselling programme, which aligns with the PICOS criteria.",-,-,-,-,-
+101,False,The study design is not a randomized controlled trial and lacks a control group for comparison. The outcomes focus on safety and preliminary efficacy rather than comparative effectiveness.,-,-,-,-,-
+102,False,"The study uses observational data to emulate a target trial, which does not meet the criteria for a randomized controlled trial. The population includes CHB patients with elevated cholesterol levels, which may not be relevant to all CHB patients.",-,-,-,-,-
+103,False,"The study design is a single-arm, non-randomized trial, which does not meet the criteria for a randomized controlled trial. The comparison group is not specified.",-,-,-,-,-
+104,False,"The study design is a retrospective observational study, which does not meet the criteria for a randomized controlled trial. The comparison group is non-radiation therapy.",-,-,-,-,-
+105,False,"The study focuses on patients with malignant ascites and evaluates an oncolytic adenovirus, which does not align with the PICOS criteria for hepatocellular carcinoma treatments. The study design is a phase II trial without randomization.",-,-,-,-,-
+106,True,The study meets all PICOS criteria with a randomized controlled trial comparing SABR to other standard of care therapies in patients with early-stage HCC.,-,-,-,-,-
+107,False,"The study design is based on a prospectively-collected multicenter database and uses propensity score matching, which does not meet the criteria for a randomized controlled trial.",-,-,-,-,-
+108,False,"The study design is a phase I dose-escalation trial without a control group, focusing on safety and optimal dosage rather than comparative effectiveness.",-,-,-,-,-
+109,True,The study meets all PICOS criteria with a randomized controlled trial comparing proton beam radiotherapy to transarterial chemoembolization in patients with HCC.,-,-,-,-,-
+140,True,"Matches all PICOS criteria. Population, intervention, comparison, outcomes, and study design are clearly defined.",-,-,-,-,-
+141,True,"Matches all PICOS criteria. Population with HCC and Vp4 PVTT is clearly specified along with interventions, outcomes, and RCT design.",-,-,-,-,-
+142,False,Does not match study design criteria: not an RCT. Observational study does not meet inclusion criteria.,-,-,-,-,-
+143,False,"Population does not match: patients are with CHB, not HCC. Study focuses on reducing HCC risk in CHB patients.",-,-,-,-,-
+144,False,Population and outcomes do not match: not focused on HCC patients or survival/response rate. Study evaluates PET tracers for liver lesions.,-,-,-,-,-
+145,False,Does not match study design criteria: not an RCT. Observational study does not meet inclusion criteria.,-,-,-,-,-
+146,False,Does not match study design criteria: not an RCT. Single-arm observational study does not meet inclusion criteria.,-,-,-,-,-
+147,False,"Intervention and study design do not match: not focused on immunotherapy or targeted therapy, not an RCT. ML model development does not fit the criteria.",-,-,-,-,-
+148,False,Population and outcomes do not match: not focused on HCC patients or survival/response rate. Study evaluates HBsAg recurrence after seroclearance.,-,-,-,-,-
+149,False,Population and outcomes do not match: not focused on HCC patients or survival/response rate. Study evaluates SBRT for impaired liver function or non-ablatable tumors.,-,-,-,-,-
+90,False,Population does not specifically target hepatocellular carcinoma patients. Intervention and outcomes do not match the target criteria.,-,-,-,-,-
+91,True,"Population matches but intervention is SABR which is not standard immunotherapy or targeted therapy. However, it provides valuable insights into treatment options for oligometastatic HCC.",-,-,-,-,-
+92,False,Population matches but intervention involves mRNA electroporated HBV-TCR T cells which is not standard immunotherapy or targeted therapy.,-,-,-,-,-
+93,False,Population matches but intervention is not specified and study design is retrospective.,-,-,-,-,-
+94,False,Population does not match as it focuses on NASH and type 2 diabetes. Outcomes are not related to survival or response rate in hepatocellular carcinoma.,-,-,-,-,-
+95,False,Population and intervention match but there is no comparison to standard therapy or placebo and study design is a single-arm phase II trial.,-,-,-,-,-
+96,False,Population matches but intervention is palliative SBRT which is not standard immunotherapy or targeted therapy and study design is observational retrospective.,-,-,-,-,-
+97,True,Population matches and intervention involves a combination of TKI with anti-PD-L1 antibody which aligns with targeted therapy. Study design is phase 1b.,-,-,-,-,-
+98,False,Population matches but interventions are surgical and not immunotherapy or targeted therapy and study design is observational.,-,-,-,-,-
+99,True,Population matches and intervention involves anlotinib alone or combined with S-1 which aligns with targeted therapy. Study design is randomized.,-,-,-,-,-
+130,True,Population and study design match criteria. Intervention and outcomes are well-defined and relevant.,-,-,-,-,-
+131,False,"Population does not match as it focuses on DPHCC vs non-DPHCC. Study design is retrospective, not RCT.",patients with hepatocellular carcinoma,-,-,-,randomized controlled trial
+132,False,Intervention and comparison are not specified. Study design is not an RCT.,-,TACE combined with envafolimab and lenvatinib vs standard of care,standard of care,-,randomized controlled trial
+133,False,"Comparison and outcome do not match criteria. Study design is a dose-escalation trial, not an RCT.",-,-,placebo or standard treatment,efficacy and safety endpoints,randomized controlled trial
+134,True,All PICOS elements match the target criteria. Randomized phase II study with clear intervention and comparison.,-,-,-,-,-
+135,False,Comparison and study design do not match criteria. No control group specified.,-,TACE plus pembrolizumab vs TACE alone,TACE alone,-,randomized controlled trial
+136,True,Population and study design match criteria. Intervention and outcomes are well-defined and relevant.,-,-,-,-,-
+137,False,Comparison and study design do not match criteria. No control group specified.,-,apatinib with HAIC vs standard second-line therapy,standard second-line therapy,-,randomized controlled trial
+138,False,Study design is not an RCT. Comparison and outcome need clarification.,-,TARE with (131)I-lipiodol vs TACE,TACE,objective tumor response and survival,randomized controlled trial
+139,False,No intervention or comparison specified. Outcome and study design do not match criteria.,-,not applicable,not applicable,overall survival according to sex,prospective cohort study
+170,False,Population and intervention partially match but no comparison to standard therapy or placebo and study design is not a randomized controlled trial,-,-,-,-,-
+171,False,Population and intervention match but no comparison to standard therapy or placebo and study design is not a randomized controlled trial,-,-,-,-,-
+172,True,Population intervention comparison outcome and study design all match the target criteria,-,-,-,-,-
+173,False,Population matches but intervention comparison outcome and study design do not match the target criteria,-,-,-,-,-
+174,False,Population intervention comparison and study design match but outcome does not match the target criteria,-,-,-,-,-
+175,False,Population matches but intervention comparison outcome and study design do not match the target criteria,-,-,-,-,-
+176,False,Population and intervention partially match but no comparison to standard therapy or placebo and study design is not a randomized controlled trial,-,-,-,-,-
+177,False,Population does not match and outcome does not match the target criteria,-,-,-,-,-
+178,False,Population and intervention match but no comparison to standard therapy or placebo and study design is not a randomized controlled trial,-,-,-,-,-
+179,True,Population intervention comparison outcome and study design all match the target criteria,-,-,-,-,-
+180,False,Study focuses on HCC surveillance uptake via telehealth consultations. Population and intervention do not align with criteria for immunotherapy or targeted therapy.,-,-,-,-,-
+181,False,"Study examines probiotic supplementation in NAFLD patients, not hepatocellular carcinoma. Intervention is not immunotherapy or targeted therapy.",-,-,-,-,-
+182,False,"Population includes compensated cirrhosis patients, not specifically those with hepatocellular carcinoma. Intervention is carvedilol therapy, not immunotherapy or targeted therapy.",-,-,-,-,-
+183,True,Study compares laparoscopic major hepatectomy to open major hepatectomy in patients with hepatocellular carcinoma. Matches PICOS criteria.,-,-,-,-,-
+184,False,"Population is metastatic NSCLC patients, not hepatocellular carcinoma. Focuses on systemic treatments and QoL outcomes.",-,-,-,-,-
+185,False,"Intervention and comparison are not specified. Focuses on gene expression analysis in HCC and cirrhosis, not survival or response rate.",-,-,-,-,-
+186,False,"Population is patients with liver cirrhosis, not specifically those with hepatocellular carcinoma. Intervention involves early detection methods, not immunotherapy or targeted therapy.",-,-,-,-,-
+187,False,"Population includes patients with CHB-associated liver fibrosis, not specifically those with hepatocellular carcinoma. Intervention is hydronidone plus entecavir, not immunotherapy or targeted therapy.",-,-,-,-,-
+188,False,"Intervention is diagnostic using CEUS Nonradiation TRA LI-RADS, not immunotherapy or targeted therapy. Study design is retrospective observational.",-,-,-,-,-
+189,False,"Population includes various liver tumours, not specifically hepatocellular carcinoma. Study design is prospective observational.",-,-,-,-,-
+210,False,The population is chicks infected with Salmonella enterica not hepatocellular carcinoma patients. The intervention and outcomes are relevant to liver health but not specific to HCC.,-,-,-,-,-
+211,False,The population is patients with acromegaly not hepatocellular carcinoma patients. The study focuses on cancer incidence in acromegaly which does not align with the target criteria.,-,-,-,-,-
+212,True,The population includes obese cirrhotic patients with and without HCC. The intervention uses spectroscopic methods for diagnosis which aligns with the target criteria.,-,-,-,-,observational study
+213,False,The population is cirrhotic patients with non-symptomatic portal vein thrombosis not hepatocellular carcinoma patients. The intervention and outcomes do not match the target criteria.,-,-,-,-,-
+214,False,The population is patients with asymptomatic synchronous unresectable colorectal liver-limited metastases not hepatocellular carcinoma patients. The intervention and outcomes do not match the target criteria.,-,-,-,-,-
+215,False,The population is liver cancer patients undergoing laparoscopic hepatectomy. The intervention focuses on pharmacokinetics of lidocaine infusion which does not align with the target criteria.,-,-,-,-,-
+216,False,The population is liver kidney transplant recipients. The study focuses on incidental HCC or iCC which does not align with the target criteria.,-,-,-,-,-
+217,False,"The population is patients with chronic liver disease in Sweden. The study focuses on incidence, prevalence, and mortality of various liver diseases which do not align with the target criteria.",-,-,-,-,-
+218,False,"The population is the general population in Ma'anshan, China. The study focuses on cancer incidence and trends which do not align with the target criteria.",-,-,-,-,-
+219,False,The population is COVID-19 patients with chronic liver diseases. The study focuses on risk factors for unfavorable outcomes which do not align with the target criteria.,-,-,-,-,-
+230,False,"Population includes non-target condition (PCCCL), intervention is diagnostic not therapeutic, no comparison or study design specified",-,-,-,-,-
+231,True,"Population matches, intervention is targeted therapy, outcomes include safety and tolerability which are relevant",-,-,-,-,-
+232,False,"Population is broader than hepatocellular carcinoma, intervention is not immunotherapy or targeted therapy, outcomes do not include survival or response rate",-,-,-,-,-
+233,False,"Population matches, but intervention is not immunotherapy or targeted therapy, outcomes do not include survival or response rate",-,-,-,-,-
+234,False,"Population does not specifically have hepatocellular carcinoma, no intervention or comparison specified, study design is not a randomized controlled trial",-,-,-,-,-
+235,False,"Population matches, but intervention is not immunotherapy or targeted therapy, no comparison specified, study design is not a randomized controlled trial",-,-,-,-,-
+236,False,"Population does not have hepatocellular carcinoma, no intervention or comparison specified, study design is not a randomized controlled trial",-,-,-,-,-
+237,False,"Population includes non-target conditions, no intervention or comparison specified, study design is not a randomized controlled trial",-,-,-,-,-
+238,False,"Population matches, but intervention is diagnostic not therapeutic, no comparison or study design specified",-,-,-,-,-
+239,False,"Population is broader than hepatocellular carcinoma, intervention is diagnostic not therapeutic, outcomes do not include survival or response rate",-,-,-,-,-
+160,True,"Matches all PICOS criteria. The study investigates the efficacy and safety of neoadjuvant therapy with TACE, camrelizumab, and apatinib compared to surgery alone in patients with single huge resectable HCC.",-,-,-,-,-
+161,False,Intervention and comparison do not match target criteria. Focuses on comparing TACE-DEB with SBRT rather than neoadjuvant therapies for resectable HCC.,-,-,-,-,-
+162,False,Intervention and comparison do not match target criteria. Compares partial hepatectomy with interventional treatment using ablation and TACE in patients with HBV-related HCC and PHT.,-,-,-,-,-
+163,False,Population and intervention do not match target criteria. Focuses on cancer patients with chronic hepatitis B undergoing chemotherapy and comparing durations of TDF prophylaxis.,-,-,-,-,-
+164,False,Comparison and study design do not match target criteria. Evaluates toripalimab plus bevacizumab in advanced HCC without a control group.,-,-,-,-,-
+165,False,Intervention does not match target criteria. Investigates neoadjuvant RT in small HCC predicted to have high risks of MVI.,-,-,-,-,-
+166,False,Population and intervention do not match target criteria. Focuses on CHB patients with advanced liver fibrosis/early cirrhosis treated with ETV plus RG.,-,-,-,-,-
+167,False,Study design does not match target criteria. Retrospective analysis of PA-TACE after hepatectomy.,-,-,-,-,-
+168,False,Population and intervention do not match target criteria. Evaluates talazoparib in various solid tumors with BRCA1/2 mutations.,-,-,-,-,-
+169,False,Population and intervention do not match target criteria. Focuses on mHealth-based intervention to improve LC screening among high-risk individuals.,-,-,-,-,-
+200,False,"Study focuses on lactate measurements for predicting PHLF, not related to immunotherapy or targeted therapy",-,-,-,-,-
+201,False,"Focuses on vWF-Ag as a biomarker for CSPH and HCC outcomes, not related to immunotherapy or targeted therapy",-,-,-,-,-
+202,False,"Study evaluates antiviral therapy for fibrosis reversal in CHB patients, not related to immunotherapy or targeted therapy",-,-,-,-,-
+203,False,"Evaluates community-level factors associated with HCC incidence and survival, not related to immunotherapy or targeted therapy",-,-,-,-,-
+204,True,"Compares SBRT plus TACE vs TACE alone for unresectable HCC, relevant to targeted therapy",-,-,-,-,-
+205,False,"Focuses on clinicopathological characteristics of cHCC-CCA, not related to immunotherapy or targeted therapy",-,-,-,-,-
+206,True,"Evaluates TPST-1120, a targeted therapy, alone and in combination with nivolumab for solid tumors including HCC",-,-,-,-,-
+207,False,"Compares precision hepatectomy vs conventional hepatectomy, not related to immunotherapy or targeted therapy",-,-,-,-,-
+208,True,"Evaluates pembrolizumab following TACE for intermediate-stage HCC, relevant to immunotherapy",-,-,-,-,-
+209,False,"Evaluates personalized dosimetry for resin 90 Y radioembolization, not related to immunotherapy or targeted therapy",-,-,-,-,-
+220,False,"Population matches but intervention and comparison are not specified. Study design is cross-sectional, not a randomized controlled trial.",-,-,-,-,-
+221,False,Population and outcomes match but intervention and comparison are not specified. Study design does not match target criteria.,-,-,-,-,-
+222,True,All PICOS elements match the target criteria. Randomized controlled trial comparing DAAs to postponed DAAs for HCC recurrence.,-,-,-,-,-
+223,False,Intervention and outcomes do not match target criteria. Focuses on nursing interventions rather than medical treatments.,-,-,-,-,-
+224,False,Intervention and comparison are not specified. Study design does not match target criteria.,-,-,-,-,-
+225,False,Population does not match as it focuses on bariatric surgery patients. Intervention and comparison do not match target criteria. Study design does not match.,-,-,-,-,-
+226,False,Population does not match as it focuses on decompensated liver cirrhosis. Intervention and comparison do not match target criteria. Study design does not match.,-,-,-,-,-
+227,False,Intervention and comparison do not match target criteria. Study design does not match.,-,-,-,-,-
+228,False,Intervention and comparison are not specified. Study design does not match target criteria.,-,-,-,-,-
+229,False,Comparison is not specified. Study design is not clearly defined. Intervention partially matches target criteria.,-,-,-,-,-
+190,True,"Matches all PICOS criteria. Population, intervention, comparison, outcome, and study design align with target criteria.",-,-,-,-,-
+191,False,Focuses on screening rather than treatment outcomes. Population and outcome do not match target criteria.,-,-,-,-,-
+192,False,Focuses on surveillance uptake rather than treatment outcomes. Population and outcome do not match target criteria.,-,-,-,-,-
+193,False,Focuses on hepatitis B rather than hepatocellular carcinoma. Population and intervention do not match target criteria.,-,-,-,-,-
+194,False,Focuses on breast cancer rather than hepatocellular carcinoma. Population does not match target criteria.,-,-,-,-,-
+195,True,"Matches all PICOS criteria. Population, intervention, comparison, outcome, and study design align with target criteria.",-,-,-,-,-
+196,False,Not a randomized controlled trial and lacks a standard therapy or placebo comparison. Study design and comparison do not match target criteria.,-,-,-,-,-
+197,False,Not a randomized controlled trial and lacks a standard therapy or placebo comparison. Study design and comparison do not match target criteria.,-,-,-,-,-
+198,False,Focuses on muscle mass and function rather than survival or response rate. Population and outcome do not match target criteria.,-,-,-,-,-
+199,False,Includes various gastrointestinal malignancies and not a randomized controlled trial. Population and study design do not match target criteria.,-,-,-,-,-
+260,False,"Study design is not a randomized controlled trial which limits its strength. However, it provides valuable insights into the combination therapy.",-,-,-,-,-
+261,False,Study design is not a randomized controlled trial and lacks a clear comparison group. The focus on concomitant medications adds complexity but does not fit the PICOS criteria.,-,-,-,-,-
+262,False,Intervention and comparison are not specified. The study focuses on predicting early recurrence rather than comparing interventions.,-,-,-,-,-
+263,False,Comparison is not specified and the study design is not a randomized controlled trial. The focus is on dose selection rather than comparative efficacy.,-,-,-,-,-
+264,True,"Meets all PICOS criteria with a clear population, intervention, comparison, outcomes, and randomized controlled trial design.",-,-,-,-,-
+265,False,Comparison is not specified and the study design is not a randomized controlled trial. Focuses on safety and dose-finding.,-,-,-,-,-
+266,False,Population and outcomes do not match the focus on hepatocellular carcinoma. Study design is not a randomized controlled trial.,-,-,-,-,-
+267,False,Study design is not specified. Provides useful data on DEB-TACE vs cTACE but lacks clarity in methodology.,-,-,-,-,retrospective cohort study
+268,False,Population and outcomes do not match the focus on hepatocellular carcinoma. Study design is a randomized control trial but irrelevant to HCC.,-,-,-,-,-
+269,False,Intervention and comparison are not specified. Study design is not a randomized controlled trial. Focuses on recurrence patterns and survival.,-,-,-,-,-
+290,False,The study compares IDA-TACE and DOX-TACE but does not involve immunotherapy or targeted therapy as required by the criteria,-,-,-,-,-
+291,False,The study focuses on predicting liver-related events in PBC using serum ATX levels which does not align with the specified population or intervention criteria,-,-,-,-,-
+292,True,"This study evaluates the safety and efficacy of an anti-CTLA-4 monoclonal antibody (CS1002) and its combination with an anti-PD-1 antibody (CS1003) in patients with advanced/metastatic solid tumors, matching the criteria for immunotherapy",-,-,-,-,-
+293,False,"The study investigates ICG fluorescence imaging for resection margin determination in hepatocellular carcinoma, which does not match the criteria for immunotherapy or targeted therapy",-,-,-,-,-
+294,False,"The study is a Phase Ib trial evaluating itacitinib for advanced or metastatic HCC. While relevant to HCC, it does not focus on immunotherapy or targeted therapies as specified",-,-,-,-,-
+295,False,"The study examines lusutrombopag for increasing PLT counts before RFA in HCC patients, which does not align with the criteria for immunotherapy or targeted therapy",-,-,-,-,-
+296,False,"The study evaluates an AI system for detecting FLLs during ultrasound, which does not match the criteria for immunotherapy or targeted therapy",-,-,-,-,-
+297,False,"The study assesses ROTEM-based algorithm for guiding blood component administration in cirrhotic patients undergoing invasive procedures, which does not align with the criteria for immunotherapy or targeted therapy",-,-,-,-,-
+298,False,"The study constructs a nomogram based on HCC-GRIm score for prognosis prediction, which does not match the criteria for immunotherapy or targeted therapy",-,-,-,-,-
+299,False,"The study evaluates SBRT for HCC patients with IVCTT, which does not align with the criteria for immunotherapy or targeted therapy",-,-,-,-,-
+310,False,Intervention is not immunotherapy or targeted therapy and study design is a simulation not a direct RCT,-,-,-,-,-
+311,False,Population does not specifically have hepatocellular carcinoma and study design is not an RCT,-,-,-,-,-
+312,False,Population does not have hepatocellular carcinoma and study design is not an RCT,-,-,-,-,-
+313,False,Intervention is not immunotherapy or targeted therapy and study design is not an RCT,-,-,-,-,-
+314,False,Intervention is not immunotherapy or targeted therapy and study design is not an RCT,-,-,-,-,-
+315,False,Intervention is not immunotherapy or targeted therapy,-,-,-,-,-
+316,False,Population does not have hepatocellular carcinoma and study design is not an RCT,-,-,-,-,-
+317,False,Intervention is not immunotherapy or targeted therapy and study design is not an RCT,-,-,-,-,-
+318,False,Intervention and comparison not specified and study design is not an RCT,-,-,-,-,-
+319,False,Intervention is not immunotherapy or targeted therapy and study design is not an RCT,-,-,-,-,-
+240,False,Population matches but study design is not an RCT and does not specify interventions clearly,-,"obesity, sarcopenic obesity, dynapenic obesity",non-obese patients,overall survival,retrospective observational study
+241,True,Population and intervention match target criteria. Study design is an RCT,-,-,-,-,-
+242,False,Population and intervention do not match target criteria. Study design is not an RCT,-,-,-,-,prospective study
+243,False,Population does not match target criteria. No specific intervention or comparison,-,-,-,-,observational study
+244,False,Study design is not an RCT and lacks a control group,-,-,-,-,"open-label, single-arm, exploratory clinical trial"
+245,False,Population and intervention do not match target criteria. Study design is not an RCT,-,-,-,-,prospective study
+246,False,Population matches but study design is not an RCT and lacks a control group,-,antiviral treatment,-,"recompensation rate, second decompensation rate, long-term prognosis",retrospective multi-center study
+247,False,Population matches but study design is not an RCT and lacks a control group,-,curative-intent resection,serological complete conversion vs. serological incomplete conversion,"recurrence, overall survival",multicenter observational study
+248,False,Population matches but study design is not an RCT and lacks a control group,-,transarterial chemoembolization,-,overall survival,retrospective study
+249,False,Population and intervention do not match target criteria,-,Patient Navigator-led Intervention,control group,"rates of doctor visits, ALT testing",randomized controlled trial
+280,False,Study focuses on body composition and recurrence outcomes after liver resection. Does not involve immunotherapy or targeted therapy.,-,-,-,-,-
+281,False,"Focuses on HCC screening in cirrhosis patients, not specifically HCC treatment with immunotherapy or targeted therapy.",-,-,-,-,-
+282,False,"Population is hypothyroidism patients, not HCC. No intervention or comparison specified.",-,-,-,-,-
+283,False,"Focuses on quality of life impact of AEs in unresectable HCC, not survival or response rates from immunotherapy or targeted therapy.",-,-,-,-,-
+284,True,"Matches criteria: recurrent HCC patients treated with RFA plus anti-PD-1 vs RFA alone, focusing on recurrence-free survival.",-,-,-,-,retrospective cohort study
+285,False,"Evaluates PTX3 as a biomarker for primary liver cancer diagnosis and prognosis, not survival or response rates from specific therapies.",-,-,-,-,-
+286,False,"Single-arm phase II trial without a comparison group, does not meet RCT criteria.",-,-,-,-,-
+287,False,"Population is NAFLD patients, not HCC. Focuses on LSM/CAP for predicting liver-related events.",-,-,-,-,-
+288,False,"Develops a nomogram for postoperative pleural effusion in hepatectomy patients, not survival or response rates from specific therapies.",-,-,-,-,-
+289,False,"Focuses on SLE classification criteria, not HCC or relevant therapies.",-,-,-,-,-
+270,False,No comparison group specified and not a randomized controlled trial,-,-,-,-,-
+271,False,No comparison group specified and study design not specified as randomized controlled trial,-,-,-,-,-
+272,False,No comparison group specified and not a randomized controlled trial,-,-,-,-,-
+273,False,"Population does not match, no comparison group specified, and not a randomized controlled trial",-,-,-,-,-
+274,False,"Intervention and outcome do not match, and not a randomized controlled trial",-,-,-,-,-
+275,True,"Meets PICOS criteria with a clear population, intervention, comparison, outcomes, and randomized controlled trial design",-,-,-,-,-
+276,False,Intervention and study design do not match the target criteria,-,-,-,-,-
+277,False,No comparison group specified and not a randomized controlled trial,-,-,-,-,-
+278,False,No comparison group specified and not a randomized controlled trial,-,-,-,-,-
+279,False,Population and intervention do not match the target criteria,-,-,-,-,-
+250,False,Intervention is not immunotherapy or targeted therapy. Outcomes do not include survival or response rate.,-,-,-,-,-
+251,False,"Intervention is not immunotherapy or targeted therapy. Study design is a single-site feasibility trial, not an RCT.",-,-,-,-,-
+252,False,Study focuses on diagnostic markers rather than therapeutic interventions. No specified intervention or comparison.,-,-,-,-,-
+253,False,"Intervention and outcomes do not match target criteria. Study design is observational, not an RCT.",-,-,-,-,-
+254,False,"Intervention is sorafenib, not immunotherapy or targeted therapy. Comparison is not specified. Study design is retrospective observational.",-,-,-,-,-
+255,True,"Population, intervention, and outcomes match the target criteria. However, study design is a single-arm phase 2 trial, not an RCT.",-,-,not specified,-,"open-label, single-arm, single-centre, phase 2 trial"
+256,False,Population not specified. Intervention does not match target criteria. Outcomes do not include survival or response rate.,-,-,-,-,-
+257,False,"Intervention is hepatic arterial infusion chemotherapy, not immunotherapy or targeted therapy. Comparison is not specified. Study design is retrospective.",-,-,-,-,-
+258,False,"Population does not match as it focuses on ulcerative colitis. Study design is phase 2b trial, not an RCT.",-,-,-,-,-
+259,False,Intervention does not match target criteria. Study design is post hoc analysis of a nonrandomized clinical trial.,-,-,-,-,-
+300,True,The study matches the criteria for patients with hepatocellular carcinoma and evaluates early recurrence after thermal ablation. The comparison is implicit in the model performance evaluation.,patients with hepatocellular carcinoma,thermal ablation,-,early recurrence prediction,observational study
+301,False,"The population focuses on biliary tract cancer, not hepatocellular carcinoma. The intervention and outcomes do not align with the target criteria.",-,-,-,-,-
+302,False,"The study design and lack of a control group do not meet the criteria. Additionally, the primary outcome does not focus on recurrence or survival post-ablation.",-,-,-,-,-
+303,False,The population and intervention do not match the target criteria for hepatocellular carcinoma or thermal ablation.,-,-,-,-,-
+304,False,The population and intervention do not match the target criteria for hepatocellular carcinoma or thermal ablation.,-,-,-,-,-
+305,False,"The study design and lack of a control group do not meet the criteria. Additionally, the intervention does not involve thermal ablation.",-,-,-,-,-
+306,False,The population and intervention do not match the target criteria for hepatocellular carcinoma or thermal ablation.,-,-,-,-,-
+307,False,The population and intervention do not match the target criteria for hepatocellular carcinoma or thermal ablation.,-,-,-,-,-
+308,True,The study matches the criteria for hepatocellular carcinoma patients and evaluates the impact of transvascular antitumor interventional therapy on immune cell dynamics and disease control.,hepatocellular carcinoma patients,transvascular antitumor interventional therapy,-,"disease control rate, progression-free survival",single-center observational case-control study
+309,False,The population and intervention do not match the target criteria for hepatocellular carcinoma or thermal ablation.,-,-,-,-,-
+370,False,"Population matches but intervention, comparison, outcome, and study design do not meet target criteria",-,-,-,-,-
+371,False,Population does not match and study design is not a randomized controlled trial,-,-,-,-,-
+372,False,"Population matches but intervention, comparison, outcome, and study design do not meet target criteria",-,-,-,-,-
+373,False,"Population matches but intervention, comparison, outcome, and study design do not meet target criteria",-,-,-,-,-
+374,False,"Population does not match and intervention, comparison, outcome, and study design do not meet target criteria",-,-,-,-,-
+375,False,"Population does not match and intervention, comparison, outcome, and study design do not meet target criteria",-,-,-,-,-
+376,False,"Population matches but intervention, comparison, outcome, and study design do not meet target criteria",-,-,-,-,-
+377,False,Population does not match and study design is not a randomized controlled trial,-,-,-,-,-
+378,False,"Population does not match and intervention, comparison, outcome, and study design do not meet target criteria",-,-,-,-,-
+379,False,Population does not match and outcome does not meet target criteria,-,-,-,-,-
+340,False,"Population matches but intervention and outcome do not align with target criteria. Study design is cross-sectional, not a randomized controlled trial.",-,-,-,-,-
+341,False,Population matches but outcomes do not align with target criteria. Study design matches but focuses on surgical technique rather than pharmacological interventions for HCC.,-,-,-,-,-
+342,False,"Population matches but intervention and outcomes do not align with target criteria. Study design is observational, not a randomized controlled trial.",-,-,-,-,-
+343,False,Population matches but intervention and outcomes do not align with target criteria. Study design is prospective but not a randomized controlled trial.,-,-,-,-,-
+344,True,"All PICOS criteria match the target criteria. Population, intervention, comparison, outcomes, and study design are appropriate.",-,-,-,-,-
+345,False,Population does not match as it focuses on cirrhotic HCV patients. Intervention and outcomes partially match but study design is not specified.,-,-,-,-,-
+346,False,Population matches but intervention and outcomes do not align with target criteria. Study design is not specified.,-,-,-,-,-
+347,False,Population does not match as it focuses on cirrhotic patients with PVT. Intervention and outcomes do not align with target criteria. Study design is retrospective.,-,-,-,-,-
+348,False,"Population does not match as it focuses on healthy participants. Intervention and outcomes do not align with target criteria. Study design is phase 1, not a randomized controlled trial for HCC.",-,-,-,-,-
+349,False,Population does not match as it focuses on chronic hepatitis B with hepatic steatosis. Intervention and outcomes do not align with target criteria. Study design matches but not for HCC.,-,-,-,-,-
+390,False,Population matches but intervention is not immunotherapy or targeted therapy and study design is not a randomized controlled trial,-,-,-,-,-
+391,False,Population does not match and there is no comparison or outcome related to survival or response rate,-,-,-,-,-
+392,False,Population partially matches but the study design is not a randomized controlled trial and the outcome is not directly related to survival or response rate,-,-,-,-,-
+393,False,Population matches but intervention is not immunotherapy or targeted therapy and there is no comparison or outcome related to survival or response rate,-,-,-,-,-
+394,False,Population matches but intervention is not immunotherapy or targeted therapy and there is no comparison or outcome related to survival or response rate,-,-,-,-,-
+395,False,Population does not match and there is no comparison or outcome related to survival or response rate,-,-,-,-,-
+396,False,Population partially matches but intervention is not immunotherapy or targeted therapy and there is no comparison or outcome related to survival or response rate,-,-,-,-,-
+397,True,Population and intervention match with outcomes related to safety and preliminary efficacy in advanced HCC,-,-,-,-,-
+398,False,Population matches but intervention is not immunotherapy or targeted therapy and study design is not a randomized controlled trial,-,-,-,-,-
+399,False,Population does not match and there is no intervention comparison or outcome related to survival or response rate,-,-,-,-,-
+330,False,Population and intervention match but comparison is not standard therapy or placebo. Outcomes include more than survival or response rate.,-,-,-,-,-
+331,False,Population and intervention match but comparison is not standard therapy or placebo. Outcomes include more than survival or response rate.,-,-,-,-,-
+332,False,Population matches but intervention is not immunotherapy or targeted therapy. No comparison specified. Outcome not survival or response rate. Study design not a randomized controlled trial.,-,-,-,-,-
+333,False,Population matches but intervention is not immunotherapy or targeted therapy. Outcome not survival or response rate. Study design not a randomized controlled trial.,-,-,-,-,-
+334,False,Population matches but intervention is not immunotherapy or targeted therapy. No comparison specified. Outcome includes more than survival or response rate. Study design not a randomized controlled trial.,-,-,-,-,-
+335,False,Population matches but intervention is not immunotherapy or targeted therapy. Outcome includes more than survival or response rate. Study design not a randomized controlled trial.,-,-,-,-,-
+336,False,Population matches but intervention is not immunotherapy or targeted therapy. Outcome not survival or response rate. Study design not a randomized controlled trial.,-,-,-,-,-
+337,False,Population does not match. Intervention not specified. No comparison specified. Outcome not survival or response rate. Study design not a randomized controlled trial.,-,-,-,-,-
+338,False,Population does not match. Intervention is not immunotherapy or targeted therapy. No comparison specified. Outcome not survival or response rate. Study design not a randomized controlled trial.,-,-,-,-,-
+339,True,Population matches. Intervention and comparison are appropriate. Outcomes include disease-free and overall survival. Study design is a prospective randomized controlled trial.,-,-,-,-,-
+320,True,The study directly compares pre-TACE 3D CT angiography with DSA for detecting HCC feeding vessels which aligns well with the PICOS criteria,-,-,-,-,-
+321,False,"The intervention and outcomes do not match the target criteria. The focus is on high-power MWA device effectiveness, not on HCC detection or treatment comparison relevant to our criteria",-,-,-,-,-
+322,False,"While it discusses preoperative chemotherapy for HCC, the primary focus is on potentially resectable UICC7 Stage IIIA and IIIB HCC patients which does not fully align with the target population and intervention criteria",-,-,-,-,-
+323,False,"The study focuses on predictive factors of 90-day mortality after hepatic resection, which does not align with the target criteria for HCC detection or treatment comparison",-,-,-,-,-
+324,False,The population and intervention do not match the target criteria. It focuses on lusutrombopag for platelet count increase in CLD patients undergoing invasive procedures,-,-,-,-,-
+325,False,The study partially matches the population but lacks a specified comparison group and does not fully align with the target criteria for HCC detection or treatment,-,-,-,-,-
+326,False,The study focuses on cisplatin-induced acute kidney injury and long-term renal dysfunction which does not align with the target criteria for HCC detection or treatment,-,-,-,-,-
+327,False,The study focuses on COVID-19 vaccination effects on infection-free survival in HCC patients which does not align with the target criteria for HCC detection or treatment comparison,-,-,-,-,-
+328,True,The study compares therapeutic response and clinical outcome of MWA and RFA for treating small- and medium-sized HCC which aligns well with the PICOS criteria,-,-,-,-,-
+329,False,The study focuses on post-liver transplant renal function and survival in HRS patients treated with terlipressin which does not align with the target criteria for HCC detection or treatment,-,-,-,-,-
+360,False,Study design is not a randomized controlled trial and comparison is not standard therapy or placebo,-,-,-,-,-
+361,False,Population is not specifically hepatocellular carcinoma and intervention is not immunotherapy or targeted therapy,-,-,-,-,-
+362,False,Study design is not a randomized controlled trial and comparison is not standard therapy or placebo,-,-,-,-,-
+363,False,Study design is not a randomized controlled trial and intervention is not immunotherapy or targeted therapy,-,-,-,-,-
+364,True,"Matches all PICOS criteria: population is HCC patients, intervention is IRE (a form of targeted therapy), comparison is RFA (standard therapy), outcomes are survival rates, and study design is a randomized controlled trial",-,-,-,-,-
+365,True,"Matches all PICOS criteria: population is HCC patients, intervention is HAIC combined with donafenib (targeted therapy), comparison is HAIC alone (standard therapy), outcomes include survival and response rates, and study design is a randomized controlled trial",-,-,-,-,-
+366,False,Population is not hepatocellular carcinoma and intervention is not immunotherapy or targeted therapy,-,-,-,-,-
+367,False,Study design is not a randomized controlled trial and comparison is not standard therapy or placebo,-,-,-,-,-
+368,False,Population is not hepatocellular carcinoma and intervention is not immunotherapy or targeted therapy,-,-,-,-,-
+369,False,Study design is not a randomized controlled trial and comparison is not standard therapy or placebo,-,-,-,-,-
+407,False,The study focuses on radiomics models for differential diagnosis but lacks targeted therapy or survival/response rate outcomes. It is not a randomized controlled trial.,-,-,-,-,-
+408,True,"This study compares transradial and transfemoral access in c-TACE procedures with relevant outcomes. However, it does not focus on targeted therapies or survival/response rates.",patients with hepatocellular carcinoma,transradial access versus transfemoral access in c-TACE,transfemoral access,operators radiations exposure patients comfort technical success,multicenter prospective study
+409,False,The study focuses on drug-drug interactions and prednisone monotherapy in transplant recipients with SARS-CoV-2 infection. It does not involve hepatocellular carcinoma patients or relevant therapies.,-,-,-,-,-
+350,False,Population and intervention match but comparison and study design do not meet criteria,-,-,should specify a comparator for robust analysis,-,phase 1a/1b trials are early-phase studies and may not provide definitive evidence
+351,False,Population and intervention match but comparison and study design do not meet criteria,-,-,-,-,retrospective evaluation lacks the rigor of randomized controlled trials
+352,False,Population and study design match but intervention and outcome do not meet criteria,-,intervention should focus on cancer treatment rather than nursing practices,-,outcomes should be related to tumor response or survival,-
+353,False,Population and study design match but intervention and outcome do not meet criteria,-,intervention should focus on cancer treatment rather than imaging techniques,-,outcomes should be related to tumor response or survival,-
+354,False,Population and study design match but intervention and outcome do not meet criteria,-,intervention should focus on cancer treatment rather than physical therapy,-,outcomes should be related to tumor response or survival,-
+355,True,"Population, intervention, and outcomes match criteria",-,-,specify no anticancer therapy as a comparator,-,retrospective observational study is appropriate for this type of analysis
+356,False,"Population, intervention, comparison, and outcome do not meet criteria",focus on hepatocellular carcinoma specifically,intervention should be a specific treatment modality,include a relevant comparator,outcomes should be related to tumor response or survival,bioinformatics analysis is not suitable for clinical effectiveness
+357,False,"Population, intervention, comparison, and outcome do not meet criteria",patients diagnosed with chronic hepatitis B,intervention should be a specific treatment modality,include a relevant comparator,outcomes should be related to tumor response or survival,retrospective observational study lacks the rigor of randomized controlled trials
+358,True,"Population, intervention, and outcomes match criteria",-,-,-,-,retrospective cohort study is appropriate for this type of analysis
+359,False,Population and outcome match but intervention and comparison do not meet criteria,-,intervention should be a specific treatment modality,include a relevant comparator,-,retrospective analysis using SEER database lacks the rigor of randomized controlled trials
+380,False,Population includes various solid tumors not specific to hepatocellular carcinoma. No comparison group and outcomes focus on safety and tolerability rather than survival or response rate.,-,-,-,-,-
+381,True,"Meets all PICOS criteria with a clear population of advanced hepatocellular carcinoma patients, intervention of HAIC plus regorafenib, comparison to regorafenib alone, and relevant outcomes including overall survival.",-,-,-,-,-
+382,False,Focuses on chronic hepatitis B patients rather than hepatocellular carcinoma. Intervention is a virtual monitoring clinic which is not relevant to the target therapy types.,-,-,-,-,-
+383,False,Population focuses on metabolic dysfunction-associated steatohepatitis rather than hepatocellular carcinoma. No specific intervention and study design is observational.,-,-,-,-,-
+384,False,"Population involves male adults suspected of having focal nodular hyperplasia, not hepatocellular carcinoma. No intervention or comparison specified and study design is retrospective.",-,-,-,-,-
+385,True,"Meets all PICOS criteria with a clear population of early hepatocellular carcinoma patients, intervention of radiofrequency ablation, comparison to percutaneous ethanol injection, and relevant outcomes including cost-effectiveness and complete response rate.",-,-,-,-,-
+386,False,"Population involves diabetic foot ulcers, not hepatocellular carcinoma. Intervention is spinal cord stimulation which is not relevant to the target therapy types.",-,-,-,-,-
+387,False,"Population involves naive cirrhotic Egyptian patients infected with HCV-G4, not specifically hepatocellular carcinoma. No comparison to standard therapy or placebo.",-,-,-,-,-
+388,False,"Population involves patients undergoing living donor liver transplantation, not specifically hepatocellular carcinoma. No intervention or comparison specified and study design is observational.",-,-,-,-,-
+389,False,"Population involves chronic hepatitis C patients who achieved SVR, not specifically hepatocellular carcinoma. No intervention or comparison specified and study design is observational.",-,-,-,-,-
+410,False,"Population does not specify hepatocellular carcinoma. Comparison is not specified and lacks a control group. Study design is an open-label phase 1c trial, not a randomized controlled trial.",-,-,-,-,-
+411,False,Population matches post-liver transplantation for HCC but intervention and comparison focus on immunosuppression rather than immunotherapy or targeted therapy. Outcome does not directly match survival or response rate.,-,-,-,-,-
+412,False,"Population focuses on chronic hepatitis B, not hepatocellular carcinoma. Intervention and comparison are antiviral drugs, not immunotherapy or targeted therapy. Outcomes do not include survival or response rate.",-,-,-,-,-
+400,False,"Does not specify hepatocellular carcinoma patients, immunotherapy or targeted therapy, standard therapy or placebo, survival or response rate, or randomized controlled trial design.",-,-,-,-,-
+401,True,"Specifies hepatocellular carcinoma patients and evaluates bintrafusp alfa, a targeted therapy. However, it lacks a comparison to standard therapy or placebo and is an open-label phase I study, not a randomized controlled trial.",-,-,-,-,-
+402,False,"Focuses on cirrhosis and portal vein thrombosis, not hepatocellular carcinoma. Does not specify immunotherapy or targeted therapy, standard therapy or placebo, survival or response rate, or randomized controlled trial design.",-,-,-,-,-
+403,False,"Focuses on coagulation profile after liver resection, not hepatocellular carcinoma. Does not specify immunotherapy or targeted therapy, standard therapy or placebo, survival or response rate, or randomized controlled trial design.",-,-,-,-,-
+404,False,"Focuses on hand hygiene compliance in healthcare workers, not hepatocellular carcinoma. Does not specify immunotherapy or targeted therapy, standard therapy or placebo, survival or response rate, or randomized controlled trial design.",-,-,-,-,-
+405,False,"Focuses on image quality during TACE interventions, not hepatocellular carcinoma. Does not specify immunotherapy or targeted therapy, survival or response rate, or randomized controlled trial design.",-,-,-,-,-
+406,False,"Focuses on predicting microvascular invasion in intrahepatic mass-forming cholangiocarcinoma, not hepatocellular carcinoma. Does not specify immunotherapy or targeted therapy, standard therapy or placebo, survival or response rate, or randomized controlled trial design.",-,-,-,-,-

@@ -1,0 +1,29 @@
+index,final_decision,reasoning
+11,False,Intervention and comparison do not match target criteria of immunotherapy or targeted therapy versus standard therapy or placebo
+100,False,Population does not match; intervention and outcome do not match target criteria
+121,False,Comparison is not specified and study design is not a randomized controlled trial
+122,False,"Comparison is not specified and study design is a phase 2 trial, not a randomized controlled trial"
+127,False,Outcome is not survival or response rate and study design is not a randomized controlled trial
+130,False,Population and study design match but intervention and outcome do not match target criteria
+136,False,Population and study design match but intervention and outcome do not match target criteria
+114,False,Population and intervention match but comparison is to initial surgery not standard therapy or placebo
+91,False,Population matches but intervention is not immunotherapy or targeted therapy and there is no comparison to standard therapy or placebo
+97,False,Population matches but intervention is not standard immunotherapy or targeted therapy and study design is not a randomized controlled trial
+99,False,Intervention is not standard immunotherapy or targeted therapy and study design is not a randomized controlled trial
+183,False,"Intervention is surgical, not immunotherapy or targeted therapy"
+212,False,Intervention and comparison do not match the target criteria
+204,False,Intervention not related to immunotherapy or targeted therapy
+231,False,No comparison to standard therapy or placebo and outcomes do not include survival or response rate
+241,False,Population and intervention do not match the target criteria
+292,False,Population and study design do not match criteria
+275,False,Population and intervention do not match the target criteria
+300,False,Intervention and study design do not match target criteria
+308,False,Intervention and study design do not match target criteria
+320,False,Intervention and outcome do not match target criteria
+328,False,Comparison and outcome do not match target criteria
+355,False,Comparison and study design do not meet target criteria
+358,False,Comparison and study design do not meet target criteria
+339,False,Intervention is not immunotherapy or targeted therapy
+397,False,No comparison or outcome related to survival or response rate
+401,False,Lacks comparison to standard therapy or placebo
+408,False,Lacks targeted therapy and survival or response rate focus

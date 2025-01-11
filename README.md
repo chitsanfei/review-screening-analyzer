@@ -50,7 +50,7 @@ review-screening-analyzer/
 
 请确保您的系统上已安装 [Python](https://www.python.org/) 和 [pip](https://pip.pypa.io/en/stable/)。
 
-在项目目录`/`下创建环境变量：
+在项目目录`/`下创建环境变量`.env`：
 ```
 # API Keys
 DEEPSEEK_API_KEY=

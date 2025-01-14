@@ -372,19 +372,50 @@ Be thorough and objective in your final judgment."""
                     }
                     
                     # For Model B and C, check if we have all required previous results
-                    if model_key in ["model_b", "model_c"]:
-                        if not previous_results or "model_a" not in previous_results:
+                    if model_key in ["model_b", "model_c"] and previous_results:
+                        if "model_a" not in previous_results:
                             raise Exception("Model A results required")
-                        if idx not in previous_results["model_a"].index:
+                            
+                        # Convert index to string for comparison
+                        str_idx = str(idx)
+                        model_a_data = previous_results["model_a"]
+                        
+                        # Check if index exists in Model A results
+                        if str_idx not in model_a_data.index.astype(str).values:
                             logging.warning(f"Missing Model A result for index {idx}")
                             failed_indices.add(idx)
                             continue
                             
-                    if model_key == "model_c" and "model_b" not in previous_results:
-                        raise Exception("Model B results required")
+                        # Get Model A result for this index
+                        a_result = model_a_data.loc[model_a_data.index.astype(str) == str_idx].iloc[0]
                         
-                    batch_results.append(abstract)
-                    
+                        if model_key == "model_c":
+                            if "model_b" not in previous_results:
+                                raise Exception("Model B results required")
+                                
+                            model_b_data = previous_results["model_b"]
+                            if str_idx not in model_b_data.index.astype(str).values:
+                                logging.warning(f"Missing Model B result for index {idx}")
+                                failed_indices.add(idx)
+                                continue
+                                
+                            # Get Model B result for this index
+                            b_result = model_b_data.loc[model_b_data.index.astype(str) == str_idx].iloc[0]
+                            
+                            # Only process if there is disagreement
+                            if a_result["matches_criteria"] != b_result["inclusion_decision"]:
+                                batch_results.append(abstract)
+                            else:
+                                empty_results.append({
+                                    "index": str_idx,
+                                    "final_decision": a_result["matches_criteria"],
+                                    "reasoning": "No disagreement between Model A and B"
+                                })
+                        else:  # model_b
+                            batch_results.append(abstract)
+                    else:  # model_a
+                        batch_results.append(abstract)
+                        
                 except Exception as e:
                     logging.error(f"Error processing row {idx}: {str(e)}")
                     error_count += 1
@@ -398,38 +429,26 @@ Be thorough and objective in your final judgment."""
                     elif model_key == "model_b":
                         model_a_results = []
                         for abstract in batch_results:
-                            idx = int(abstract["index"])
-                            a_result = previous_results["model_a"].loc[idx].to_dict()
+                            idx = abstract["index"]
+                            a_result = previous_results["model_a"].loc[previous_results["model_a"].index.astype(str) == idx].iloc[0].to_dict()
                             model_a_results.append(a_result)
                         api_results = self._call_model_b(batch_results, model_a_results)
                     else:  # model_c
                         model_a_results = []
                         model_b_results = []
                         for abstract in batch_results:
-                            idx = int(abstract["index"])
-                            # 确保获取正确的决策字段
-                            a_result = previous_results["model_a"].loc[idx]
-                            b_result = previous_results["model_b"].loc[idx]
+                            idx = abstract["index"]
+                            a_result = previous_results["model_a"].loc[previous_results["model_a"].index.astype(str) == idx].iloc[0]
+                            b_result = previous_results["model_b"].loc[previous_results["model_b"].index.astype(str) == idx].iloc[0]
                             
-                            # 检查是否有分歧
+                            # Only add to results if there is disagreement
                             if a_result["matches_criteria"] != b_result["inclusion_decision"]:
                                 model_a_results.append(a_result.to_dict())
                                 model_b_results.append(b_result.to_dict())
                                 logging.debug(f"Found disagreement at index {idx}: A={a_result['matches_criteria']}, B={b_result['inclusion_decision']}")
                         
-                        if model_a_results and model_b_results:  # 只有在有分歧时才调用 Model C
+                        if model_a_results and model_b_results:  # Only call Model C if there are disagreements
                             api_results = self._call_model_c(batch_results, model_a_results, model_b_results)
-                        else:
-                            # 如果没有分歧，创建空结果
-                            api_results = []
-                            for abstract in batch_results:
-                                idx = abstract["index"]
-                                a_result = previous_results["model_a"].loc[int(idx)]
-                                api_results.append({
-                                    "index": idx,
-                                    "final_decision": a_result["matches_criteria"],
-                                    "reasoning": "No disagreement between Model A and B"
-                                })
                 
                 # Combine API results with empty results
                 return api_results + empty_results
@@ -500,40 +519,74 @@ Be thorough and objective in your final judgment."""
             
         return results_df
     
-    def merge_results(self, df: pd.DataFrame, model_results: Dict[str, pd.DataFrame]) -> pd.DataFrame:
+    def merge_results(self, df: pd.DataFrame, model_results: Dict) -> pd.DataFrame:
         """Merge all model results"""
-        # Create a copy of input DataFrame
-        merged = df.copy()
+        logging.info("Merging results...")
         
-        # Ensure index is properly set
-        if 'Index' in merged.columns:
-            merged.set_index('Index', inplace=True)
+        if not all(k in model_results for k in ["model_a", "model_b"]):
+            raise Exception("Model A and B results required")
+            
+        # Create a copy of input DataFrame
+        merged_df = df.copy()
         
         # Add Model A results
-        if "model_a" in model_results:
-            model_a_df = model_results["model_a"].copy()
-            if 'index' in model_a_df.columns:
-                model_a_df = model_a_df.drop('index', axis=1)
-            for col in model_a_df.columns:
-                merged[f"A_{col}"] = model_a_df[col]
+        model_a_df = model_results["model_a"]
+        merged_df["A_Decision"] = model_a_df["matches_criteria"]
+        merged_df["A_Reasoning"] = model_a_df["reasoning"]
+        merged_df["A_P"] = model_a_df["P"]
+        merged_df["A_I"] = model_a_df["I"]
+        merged_df["A_C"] = model_a_df["C"]
+        merged_df["A_O"] = model_a_df["O"]
+        merged_df["A_S"] = model_a_df["S"]
         
         # Add Model B results
-        if "model_b" in model_results:
-            model_b_df = model_results["model_b"].copy()
-            if 'index' in model_b_df.columns:
-                model_b_df = model_b_df.drop('index', axis=1)
-            for col in model_b_df.columns:
-                merged[f"B_{col}"] = model_b_df[col]
+        model_b_df = model_results["model_b"]
+        merged_df["B_Decision"] = model_b_df["inclusion_decision"]
+        merged_df["B_Reasoning"] = model_b_df["review_comments"]
+        merged_df["B_P"] = model_b_df["corrected_P"]
+        merged_df["B_I"] = model_b_df["corrected_I"]
+        merged_df["B_C"] = model_b_df["corrected_C"]
+        merged_df["B_O"] = model_b_df["corrected_O"]
+        merged_df["B_S"] = model_b_df["corrected_S"]
         
-        # Add Model C results
+        # Add Model C results if available
         if "model_c" in model_results:
-            model_c_df = model_results["model_c"].copy()
-            if 'index' in model_c_df.columns:
-                model_c_df = model_c_df.drop('index', axis=1)
-            for col in model_c_df.columns:
-                merged[f"C_{col}"] = model_c_df[col]
+            model_c_df = model_results["model_c"]
+            merged_df["C_Decision"] = model_c_df["final_decision"]
+            merged_df["C_Reasoning"] = model_c_df["reasoning"]
+        else:
+            # If no Model C results, use logic to determine final decision
+            merged_df["C_Decision"] = None
+            merged_df["C_Reasoning"] = merged_df.apply(
+                lambda row: "No disagreement between Model A and B" if row["A_Decision"] == row["B_Decision"]
+                else "Disagreement not resolved",
+                axis=1
+            )
         
-        return merged
+        # Determine final decision
+        merged_df["Final_Decision"] = merged_df.apply(
+            lambda row: row["C_Decision"] if pd.notnull(row["C_Decision"])
+            else row["A_Decision"] if row["A_Decision"] == row["B_Decision"]
+            else row["B_Decision"],
+            axis=1
+        )
+        
+        # Ensure all columns are present
+        required_columns = [
+            "Title", "DOI", "Abstract", "Authors",
+            "A_P", "A_I", "A_C", "A_O", "A_S", "A_Decision", "A_Reasoning",
+            "B_Decision", "B_Reasoning", "B_P", "B_I", "B_C", "B_O", "B_S",
+            "C_Decision", "C_Reasoning", "Final_Decision"
+        ]
+        
+        for col in required_columns:
+            if col not in merged_df.columns:
+                merged_df[col] = None
+        
+        # Reorder columns
+        merged_df = merged_df[required_columns]
+        
+        return merged_df
     
     def _call_api(self, config: Dict, prompt: str, model_key: str) -> Dict:
         """Call API with retry mechanism and improved error handling"""
@@ -1309,9 +1362,10 @@ def create_gradio_interface():
         """Run analysis pipeline for all models"""
         try:
             # Read CSV file and ensure correct index
-            df = pd.read_csv(input_file.name, index_col='Index')
-            if df.index.name != 'Index':
-                df.index.name = 'Index'
+            df = pd.read_csv(input_file.name)
+            if "Index" not in df.columns:
+                df["Index"] = df.index.astype(str)
+            df.set_index("Index", inplace=True)
             
             total_steps = 4  # A, B, C, and merge
             current_step = 0
@@ -1330,47 +1384,55 @@ def create_gradio_interface():
             
             # Run Model A
             logging.info("Starting full analysis pipeline with Model A...")
-            model_a_path, model_a_status = process_model(input_file, "model_a")
-            if not model_a_path:
-                yield model_a_path, model_b_path, model_c_path, final_path, f"Model A failed: {model_a_status}"
+            model_a_results = analyzer.process_batch(df, "model_a")
+            if model_a_results is None:
+                yield model_a_path, model_b_path, model_c_path, final_path, "Model A failed to process results"
                 return
+                
+            # Save Model A results
+            model_a_path = os.path.join(DATA_DIR, "model_a_results.csv")
+            model_a_results.to_csv(model_a_path)
+            model_results["model_a"] = model_a_results
+            
             status = update_progress("Model A", "Completed")
             yield model_a_path, model_b_path, model_c_path, final_path, status
             
             # Run Model B
             logging.info("Starting full analysis pipeline with Model B...")
-            model_b_path, model_b_status = process_model(input_file, "model_b")
-            if not model_b_path:
-                yield model_a_path, model_b_path, model_c_path, final_path, f"Model B failed: {model_b_status}"
+            model_b_results = analyzer.process_batch(df, "model_b", {"model_a": model_a_results})
+            if model_b_results is None:
+                yield model_a_path, model_b_path, model_c_path, final_path, "Model B failed to process results"
                 return
+                
+            # Save Model B results
+            model_b_path = os.path.join(DATA_DIR, "model_b_results.csv")
+            model_b_results.to_csv(model_b_path)
+            model_results["model_b"] = model_b_results
+            
             status = update_progress("Model B", "Completed")
             yield model_a_path, model_b_path, model_c_path, final_path, status
             
             # Run Model C
             logging.info("Starting full analysis pipeline with Model C...")
-            model_c_path, model_c_status = process_model(input_file, "model_c")
-            if not model_c_path:
-                yield model_a_path, model_b_path, model_c_path, final_path, f"Model C failed: {model_c_status}"
-                return
+            model_c_results = analyzer.process_batch(df, "model_c", {
+                "model_a": model_a_results,
+                "model_b": model_b_results
+            })
+            if model_c_results is not None:
+                # Save Model C results
+                model_c_path = os.path.join(DATA_DIR, "model_c_results.csv")
+                model_c_results.to_csv(model_c_path)
+                model_results["model_c"] = model_c_results
+            
             status = update_progress("Model C", "Completed")
             yield model_a_path, model_b_path, model_c_path, final_path, status
             
-            # Create temporary file object
-            class TempFile:
-                def __init__(self, path):
-                    self.name = path
-            
             # Merge results
             logging.info("Merging results...")
-            final_path, merge_status = merge_results_with_files(
-                input_file,
-                TempFile(model_a_path),
-                TempFile(model_b_path),
-                TempFile(model_c_path) if model_c_path else None
-            )
-            if not final_path:
-                yield model_a_path, model_b_path, model_c_path, final_path, f"Merge failed: {merge_status}"
-                return
+            merged_df = analyzer.merge_results(df, model_results)
+            final_path = os.path.join(DATA_DIR, "final_results.csv")
+            merged_df.to_csv(final_path)
+            
             status = update_progress("Merge", "Completed")
             
             completion_msg = f"All models completed successfully - Processed {len(df)} rows"

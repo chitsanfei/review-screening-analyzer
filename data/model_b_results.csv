@@ -1,207 +1,282 @@
-Index,inclusion_decision,review_comments,corrected_P,corrected_I,corrected_C,corrected_O,corrected_S
-0,True,Model A's analysis is accurate. The study matches all PICOS criteria.,-,-,-,-,-
-1,False,Model A's decision is correct. The intervention does not match the specified ICIs.,-,-,-,-,-
-2,True,Model A's analysis is accurate. The study matches all PICOS criteria.,-,-,-,-,-
-3,False,Model A's decision is correct. The intervention does not match the specified ICIs.,-,-,-,-,-
-4,False,"Model A's decision is correct. The comparison is not specified, and the study design is not an RCT.",-,-,-,-,-
-5,False,"Model A's decision is correct. The comparison is not specified, and the study design is not an RCT.",-,-,-,-,-
-6,True,Model A's analysis is accurate. The study matches all PICOS criteria.,-,-,-,-,-
-7,False,Model A's decision is correct. The intervention does not match the specified ICIs.,-,-,-,-,-
-8,False,Model A's decision is correct. The comparison and study design are not specified.,-,-,-,-,-
-9,False,Model A's decision is correct. The comparison and study design are not specified.,-,-,-,-,-
-10,False,"Model A's decision is correct. The population does not match, and the study design is not an RCT.",-,-,-,-,-
-11,False,"Model A's decision is correct. The comparison is not specified, and the study design is not an RCT.",-,-,-,-,-
-12,False,"Model A's decision is correct. The comparison is not specified, and the study design is not an RCT.",-,-,-,-,-
-13,False,"Model A's decision is correct. The comparison is not specified, and the study design is not an RCT.",-,-,-,-,-
-14,False,"Model A's decision is correct. The comparison is not specified, and the study design is not an RCT.",-,-,-,-,-
-15,False,"Model A's decision is correct. The comparison is not specified, and the study design is not an RCT.",-,-,-,-,-
-16,False,"Model A's decision is correct. The comparison is not specified, and the study design is not an RCT.",-,-,-,-,-
-17,True,"Model A's decision is correct. The study matches all PICOS criteria, including a randomized controlled trial design.",-,-,-,-,-
-18,False,"Model A's decision is correct. The comparison is not specified, and the study design is not an RCT.",-,-,-,-,-
-19,False,"Model A's decision is correct. The comparison is not specified, and the study design is not an RCT.",-,-,-,-,-
-20,True,"Model A's analysis is correct. The study meets all PICOS criteria, including the population, intervention, comparison, outcomes, and study design.",-,-,-,-,-
-21,False,Model A's analysis is correct. The study does not meet the PICOS criteria as it lacks a comparison group and is not an RCT.,-,-,-,-,-
-22,False,Model A's analysis is correct. The study does not meet the PICOS criteria as it lacks a comparison group and is not an RCT.,-,-,-,-,-
-23,False,Model A's analysis is correct. The study does not meet the PICOS criteria as it lacks a comparison group and is not an RCT.,-,-,-,-,-
-24,False,Model A's analysis is correct. The study does not meet the PICOS criteria as the intervention is not an ICI.,-,-,-,-,-
-25,False,"Model A's analysis is correct. The study does not meet the PICOS criteria as the intervention is not an ICI, no comparison group is specified, and the study design is not an RCT.",-,-,-,-,-
-26,False,"Model A's analysis is correct. The study does not meet the PICOS criteria as the intervention is not an ICI, no comparison group is specified, and the study design is not an RCT.",-,-,-,-,-
-27,False,Model A's analysis is correct. The study does not meet the PICOS criteria as the intervention is not an ICI.,-,-,-,-,-
-28,False,Model A's analysis is correct. The study does not meet the PICOS criteria as it lacks a comparison group.,-,-,-,-,-
-29,False,"Model A's analysis is correct. The study does not meet the PICOS criteria as the intervention is not an ICI, no comparison group is specified, and the study design is not an RCT.",-,-,-,-,-
-30,False,"Model A's decision is correct. The population is intrahepatic cholangiocarcinoma, not hepatocellular carcinoma, and the study design is not specified as a randomized controlled trial.",-,-,-,-,-
-31,False,"Model A's decision is correct. The comparison group is not specified, and the study design is a single-arm phase II trial, not a randomized controlled trial.",-,-,-,-,-
-32,True,"Model A's decision is correct. The article matches all PICOS criteria: population, intervention, comparison, outcome, and study design.",-,-,-,-,-
-33,False,"Model A's decision is correct. The intervention is 2D and 3D CE US, not immune checkpoint inhibitors, and the study design is a prospective multicenter trial, not a randomized controlled trial.",-,-,-,-,-
-34,False,"Model A's decision is correct. The intervention is sorafenib plus transarterial chemoembolization, not immune checkpoint inhibitors.",-,-,-,-,-
-35,False,"Model A's decision is correct. The intervention is proton beam radiotherapy, not immune checkpoint inhibitors.",-,-,-,-,-
-36,False,"Model A's decision is correct. The intervention is DEB-TACE using small-size microspheres, not immune checkpoint inhibitors, and the study design is a prospective, single-arm, multicenter study, not a randomized controlled trial.",-,-,-,-,-
-37,False,"Model A's decision is correct. The comparison group is not specified, and the study design is not specified as a randomized controlled trial.",-,-,-,-,-
-38,False,"Model A's decision is correct. The intervention is a cancer vaccine, not immune checkpoint inhibitors, and the study design is a single-arm, first-in-human phase I/II multicenter trial, not a randomized controlled trial.",-,-,-,-,-
-39,False,"Model A's decision is correct. The intervention and comparison are not specified, and the study design is a prospective cohort study, not a randomized controlled trial.",-,-,-,-,-
-40,False,"Model A's decision is correct. The intervention does not involve ICIs, and the study design is not a randomized controlled trial.",-,-,-,-,-
-41,False,Model A's decision is correct. The study lacks a comparison group and is not a randomized controlled trial.,-,-,-,-,-
-42,False,"Model A's decision is correct. The intervention does not involve ICIs, and the study design is not a randomized controlled trial.",-,-,-,-,-
-43,False,"Model A's decision is correct. The intervention does not involve ICIs, although the study design is a randomized controlled trial.",-,-,-,-,-
-44,False,Model A's decision is correct. The study lacks a comparison group and the study design is not specified as a randomized controlled trial.,-,-,-,-,-
-45,True,"Model A's decision is correct. The population, intervention, comparison, and outcomes match the PICOS criteria, and the study design involves a comparison, even though it is not explicitly a randomized controlled trial.",-,-,-,-,-
-46,False,Model A's decision is correct. The study lacks a comparison group and is not a randomized controlled trial.,-,-,-,-,-
-47,False,"Model A's decision is correct. The intervention does not involve ICIs, although the study design is a randomized controlled trial.",-,-,-,-,-
-48,False,"Model A's decision is correct. The population and intervention do not match the PICOS criteria, and the study design is not a randomized controlled trial for ICIs.",-,-,-,-,-
-49,False,"Model A's decision is correct. The intervention does not involve ICIs, although the study design is a randomized controlled trial.",-,-,-,-,-
-50,False,Model A's decision is correct. The study does not have a clear comparison group and is not an RCT.,-,-,-,-,-
-51,False,"Model A's decision is correct. The intervention is not an ICI, and there is no comparison group or RCT design.",-,-,-,-,-
-52,False,Model A's decision is correct. The study lacks a clear comparison group and is not an RCT.,-,-,-,-,-
-53,False,"Model A's decision is correct. The intervention is not an ICI, and the study is not an RCT.",-,-,-,-,-
-54,False,"Model A's decision is correct. The study is not an RCT, and the comparison is to a historical control.",-,-,-,-,-
-55,False,"Model A's decision is correct. The study is not an RCT, and the intervention includes non-ICI components.",-,-,-,-,-
-56,False,Model A's decision is correct. The study lacks a comparison group and is not an RCT.,-,-,-,-,-
-57,False,"Model A's decision is correct. The intervention includes non-ICI components, and the study is not strictly an RCT.",-,-,-,-,-
-58,False,"Model A's decision is correct. The interventions are not ICIs, and the study is not strictly an RCT.",-,-,-,-,-
-59,False,"Model A's decision is correct. The interventions are not ICIs, and the study is not strictly an RCT.",-,-,-,-,-
-60,True,"Model A's PICOS extraction is accurate. The study meets the criteria with a clear population, intervention, comparison, outcome, and study design.",-,-,-,-,-
-61,False,"Model A correctly identified that the study lacks a specified comparison group and is not a randomized controlled trial. The intervention and outcomes are relevant, but the study design does not meet the criteria.",-,-,-,-,-
-62,False,"Model A correctly identified that the study lacks a specified comparison group and study design details. The intervention and outcomes are relevant, but the study design does not meet the criteria.",-,-,-,-,-
-63,False,Model A correctly identified that the population and intervention do not match the target PICOS criteria. The study design is also not a randomized controlled trial.,-,-,-,-,-
-64,False,"Model A correctly identified that the study design is not a randomized controlled trial. The population, intervention, and outcomes are relevant, but the study design does not meet the criteria.",-,-,-,-,-
-65,False,Model A correctly identified that the intervention and study design do not match the target PICOS criteria. The study uses a machine learning model for treatment recommendations and is a retrospective analysis.,-,-,-,-,-
-66,False,"Model A correctly identified that the population and intervention do not match the target PICOS criteria. The study focuses on imaging techniques and RFA, which are not the focus of the PICOS criteria.",-,-,-,-,-
-67,False,"Model A correctly identified that the study lacks a specified comparison group and is not a randomized controlled trial. The intervention and outcomes are relevant, but the study design does not meet the criteria.",-,-,-,-,-
-68,False,"Model A correctly identified that the study lacks a specified comparison group and is not a randomized controlled trial. The intervention and outcomes are relevant, but the study design does not meet the criteria.",-,-,-,-,-
-69,False,"Model A correctly identified that the study lacks a specified comparison group and is not a randomized controlled trial. The intervention and outcomes are relevant, but the study design does not meet the criteria.",-,-,-,-,-
-70,True,"Model A's analysis is accurate. The study design, population, intervention, and outcomes align with the PICOS criteria, although the comparison is not specified.",-,-,-,-,-
-71,True,"Model A's analysis is correct. The study meets all PICOS criteria, including a clear comparison group.",-,-,-,-,-
-72,False,"Model A's decision is correct. The intervention does not involve immune checkpoint inhibitors, and the study design is not a randomized controlled trial.",-,-,-,-,-
-73,True,"Model A's analysis is accurate. The study design, population, intervention, and outcomes align with the PICOS criteria, although the comparison is not specified.",-,-,-,-,-
-74,False,"Model A's decision is correct. The intervention is not an immune checkpoint inhibitor, and the study design is not a randomized controlled trial.",-,-,-,-,-
-75,True,"Model A's analysis is correct. The study meets all PICOS criteria, including a clear comparison group.",-,-,-,-,-
-76,False,"Model A's decision is correct. The intervention is not an immune checkpoint inhibitor, and the study design is not a randomized controlled trial involving ICIs.",-,-,-,-,-
-77,False,"Model A's decision is correct. The study design is a Phase I clinical trial, which does not meet the PICOS criteria for a randomized controlled trial.",-,-,-,-,-
-78,False,"Model A's decision is correct. The intervention is not an immune checkpoint inhibitor, and the study design is not a randomized controlled trial.",-,-,-,-,-
-79,False,"Model A's decision is correct. The study design is a single-arm, phase 2 trial, which does not meet the PICOS criteria for a randomized controlled trial.",-,-,-,-,-
-80,False,Model A's decision is correct. The intervention (chemoembolization plus sorafenib) does not match the PICOS criteria for immune checkpoint inhibitors (ICIs).,-,-,-,-,-
-81,True,"Model A's decision is correct. The study matches all PICOS criteria, including the use of ICIs (nivolumab and nivolumab plus ipilimumab).",-,-,-,-,-
-82,False,Model A's decision is correct. The intervention (partial hepatectomy) does not match the PICOS criteria for ICIs.,-,-,-,-,-
-83,False,"Model A's decision is correct. The comparison is not specified, and the study design is a Phase I/II study, which does not meet the RCT requirement.",-,-,-,-,-
-84,False,Model A's decision is correct. The intervention (DEB-TACE combined with apatinib) does not match the PICOS criteria for ICIs.,-,-,-,-,-
-85,False,Model A's decision is correct. The intervention (DEB-TACE) does not match the PICOS criteria for ICIs.,-,-,-,-,-
-86,False,"Model A's decision is correct. The study design is a retrospective observational study, which does not meet the RCT requirement, and the intervention (combination SBRT or RFA) does not match ICIs.",-,-,-,-,-
-87,False,"Model A's decision is correct. The comparison is not specified, and the study design is a Phase Ib study, which does not meet the RCT requirement.",-,-,-,-,-
-88,False,Model A's decision is correct. The intervention (neoadjuvant intensity modulated radiation therapy) does not match the PICOS criteria for ICIs.,-,-,-,-,-
-89,False,"Model A's decision is correct. The comparison is not specified, and the intervention (combination of TACE and SBRT) does not match the PICOS criteria for ICIs.",-,-,-,-,-
-90,False,"Model A's decision is correct. The study does not specify a comparison group and is a phase 1b study, not a randomized controlled trial.",-,-,-,-,-
-91,False,"Model A's decision is correct. The study does not specify a comparison group and is a prospective study, not a randomized controlled trial.",-,-,-,-,-
-92,False,"Model A's decision is correct. The study does not specify a comparison group and is an observational retrospective study, not a randomized controlled trial.",-,-,-,-,-
-93,True,"Model A's decision is correct. The study matches all PICOS criteria, including a randomized controlled trial design.",-,-,-,-,-
-94,False,"Model A's decision is correct. The population does not match (locally advanced breast cancer patients) and the study design is a controlled study, not a randomized controlled trial.",-,-,-,-,-
-95,False,"Model A's decision is correct. The study does not specify a comparison group and is a retrospective observational study, not a randomized controlled trial.",-,-,-,-,-
-96,False,"Model A's decision is correct. The study does not specify a comparison group and is a dose-escalation trial, not a randomized controlled trial.",-,-,-,-,-
-97,False,"Model A's decision is correct. The study does not specify a comparison group and is a phase Ib study, not a randomized controlled trial.",-,-,-,-,-
-98,False,"Model A's decision is correct. The study does not specify a comparison group and is a retrospective study, not a randomized controlled trial.",-,-,-,-,-
-99,False,"Model A's decision is correct. The study is a prospective study, but it is not specified as a randomized controlled trial.",-,-,-,-,-
-100,False,"Model A's decision is correct. The study design is a single-arm phase 2 trial, which does not meet the criteria for a randomized controlled trial.",-,-,-,-,-
-101,False,"Model A's decision is correct. The population is compensated cirrhosis patients, not hepatocellular carcinoma patients, and the intervention is carvedilol, not immune checkpoint inhibitors.",-,-,-,-,-
-102,False,"Model A's decision is correct. The study design is an observational retrospective study, which does not meet the criteria for a randomized controlled trial, and there is no specified comparison group.",-,-,-,-,-
-103,False,"Model A's decision is correct. The study design is a multicenter, single-arm, prospective, observational study, which does not meet the criteria for a randomized controlled trial, and there is no specified comparison group.",-,-,-,-,-
-104,False,"Model A's decision is correct. The study design is not specified as a randomized controlled trial, and the intervention is DEB-TACE with CalliSpheres microspheres, not immune checkpoint inhibitors.",-,-,-,-,-
-105,False,"Model A's decision is correct. The study design is a retrospective study, which does not meet the criteria for a randomized controlled trial, and there is no specified comparison group.",-,-,-,-,-
-106,False,"Model A's decision is correct. The intervention is radiotherapy prior to TACE, not immune checkpoint inhibitors, even though the study design is a randomized controlled trial.",-,-,-,-,-
-107,False,"Model A's decision is correct. The study design is a virtual clinical trial using quantitative systems pharmacology, which does not meet the criteria for a randomized controlled trial.",-,-,-,-,-
-108,False,"Model A's decision is correct. The population and intervention do not match the specified criteria, and the study design is a retrospective study, not a randomized controlled trial.",-,-,-,-,-
-109,False,"Model A's decision is correct. The study design is a phase 1b/2 study, which does not meet the criteria for a randomized controlled trial.",-,-,-,-,-
-110,False,"Model A's decision is correct. The population, intervention, and outcomes do not match the target criteria.",-,-,-,-,-
-111,False,"Model A's decision is correct. The intervention includes TKI and camrelizumab, which does not match the target of ICIs alone. Comparison and study design are not specified.",-,-,-,-,-
-112,False,"Model A's decision is correct. The intervention is TACE with dicycloplatin, not ICIs. The study design is a phase II trial, not a phase III RCT.",-,-,-,-,-
-113,False,"Model A's decision is correct. The intervention is DEB-TACE, not ICIs. The outcome includes clinical response rate, which does not match the target.",-,-,-,-,-
-114,False,"Model A's decision is correct. The intervention is DEB-TACE, not ICIs. The outcome is acute liver function deterioration, which does not match the target. Study design is not specified.",-,-,-,-,-
-115,False,"Model A's decision is correct. The population is patients with PD-L1-positive advanced gastric/gastroesophageal junction cancer, not HCC. The intervention is pembrolizumab, but for a different cancer type.",-,-,-,-,-
-116,False,"Model A's decision is correct. The intervention is sorafenib prior to RFA, not ICIs. The study design is a phase II trial, not a phase III RCT.",-,-,-,-,-
-117,False,"Model A's decision is correct. The intervention is tirapazamine in TACE, not ICIs. The study design is a phase I dose-escalation study, not a phase III RCT.",-,-,-,-,-
-118,False,"Model A's decision is correct. The intervention is yttrium-90 resin transarterial radioembolization, not ICIs. The study design is a prospective observational study, not an RCT.",-,-,-,-,-
-119,False,"Model A's decision is correct. The intervention is TACE followed by SBRT, not ICIs. The study design is randomized but not specified as a phase III RCT.",-,-,-,-,-
-120,False,Model A's decision is correct. The study does not involve immune checkpoint inhibitors (ICIs) and the population is specific to high-risk recurrence after resection.,-,-,-,-,-
-121,False,"Model A's decision is correct. The study design is a retrospective observational study, and it does not involve ICIs.",-,-,-,-,-
-122,False,"Model A's decision is correct. The intervention does not involve ICIs, and the study focuses on TACE combined with radioactive iodine implantation.",-,-,-,-,-
-123,False,"Model A's decision is correct. The intervention does not involve ICIs, and the study compares different forms of TACE.",-,-,-,-,-
-124,False,"Model A's decision is correct. The population and intervention do not match the specified criteria, as the study focuses on carvedilol and NUC in HBV-related cirrhosis.",-,-,-,-,-
-125,False,"Model A's decision is correct. The study design is a single-arm, prospective clinical trial, and it does not involve ICIs.",-,-,-,-,-
-126,False,"Model A's decision is correct. The study design is a retrospective study, and it does not involve ICIs.",-,-,-,-,-
-127,False,"Model A's decision is correct. The study design is an open-label, single-arm phase II clinical trial, and it does not meet the criteria for a randomized controlled trial.",-,-,-,-,-
-128,False,"Model A's decision is correct. The population and intervention do not match the specified criteria, as the study focuses on radiofrequency ablation and percutaneous ethanol injection.",-,-,-,-,-
-129,False,"Model A's decision is correct. The study design is a Phase Ib/II trial, and it does not meet the criteria for a randomized controlled trial.",-,-,-,-,-
-130,False,"Model A's decision is correct. The population does not match the target criteria, and there is no specified comparison group.",-,-,-,-,-
-131,False,"Model A's decision is correct. The population matches, but there is no specified comparison group, and the outcomes do not include survival or response rate.",-,-,-,-,-
-132,False,"Model A's decision is correct. The intervention is not an immune checkpoint inhibitor, although the study design and population match the criteria.",-,-,-,-,-
-133,False,"Model A's decision is correct. The intervention is not an immune checkpoint inhibitor, and the outcomes do not include survival or response rate.",-,-,-,-,-
-134,False,"Model A's decision is correct. The population does not match the target criteria, and the intervention is not an immune checkpoint inhibitor.",-,-,-,-,-
-135,False,"Model A's decision is correct. The intervention is not an immune checkpoint inhibitor, although the population and study design match the criteria.",-,-,-,-,-
-136,False,"Model A's decision is correct. The population does not match the target criteria, and the intervention is not an immune checkpoint inhibitor.",-,-,-,-,-
-137,False,"Model A's decision is correct. The population does not match the target criteria, and the intervention is not an immune checkpoint inhibitor.",-,-,-,-,-
-138,False,"Model A's decision is correct. The intervention is not an immune checkpoint inhibitor, and the outcomes do not include survival or response rate.",-,-,-,-,-
-139,False,"Model A's decision is correct. There is no specified comparison group, and the study design is not a randomized controlled trial, although the population and intervention match the criteria.",-,-,-,-,-
-140,False,Model A's decision is correct. The intervention and comparison do not involve immune checkpoint inhibitors.,-,-,-,-,-
-141,False,"Model A's decision is correct. The intervention is not an immune checkpoint inhibitor, and there is no specified comparison or relevant outcome.",-,-,-,-,-
-142,False,"Model A's decision is correct. The intervention is not an immune checkpoint inhibitor, and there is no specified comparison.",-,-,-,-,-
-143,False,"Model A's decision is correct. The study design is not specified, and the outcome is not directly related to survival or response rate.",-,-,-,-,-
-144,False,"Model A's decision is correct. The intervention is not an immune checkpoint inhibitor, and there is no specified comparison or relevant outcome.",-,-,-,-,-
-145,False,"Model A's decision is correct. The intervention is not an immune checkpoint inhibitor, and there is no specified comparison or relevant outcome.",-,-,-,-,-
-146,False,"Model A's decision is correct. The study design is not a randomized controlled trial, and the outcome is not directly related to survival or response rate.",-,-,-,-,-
-147,False,"Model A's decision is correct. The intervention is not an immune checkpoint inhibitor, and there is no specified comparison or relevant outcome.",-,-,-,-,-
-148,False,"Model A's decision is correct. The intervention is not an immune checkpoint inhibitor, and there is no specified comparison or relevant outcome.",-,-,-,-,-
-149,False,"Model A's decision is correct. The study design is not a randomized controlled trial, and the intervention includes more than just immune checkpoint inhibitors.",-,-,-,-,-
-150,False,"Model A's decision is correct. The study does not involve ICIs, lacks a specified comparison, and is not a randomized controlled trial.",-,-,-,-,-
-151,False,"Model A's decision is correct. The study does not involve ICIs, lacks a specified comparison, and is not a randomized controlled trial.",-,-,-,-,-
-152,False,"Model A's decision is correct. The study does not focus on hepatocellular carcinoma exclusively, lacks ICIs, and is not a randomized controlled trial.",-,-,-,-,-
-153,False,Model A's decision is correct. The study does not involve ICIs and focuses on nursing interventions rather than ICIs.,-,-,-,-,-
-154,False,Model A's decision is correct. The study does not involve ICIs and lacks a specified comparison group.,-,-,-,-,-
-155,False,Model A's decision is correct. The study does not involve ICIs and is not a randomized controlled trial.,-,-,-,-,-
-156,False,Model A's decision is correct. The study does not involve ICIs and is not a randomized controlled trial.,-,-,-,-,-
-157,False,Model A's decision is correct. The study does not involve ICIs and is not a randomized controlled trial.,-,-,-,-,-
-158,False,Model A's decision is correct. The study does not involve ICIs and is not a randomized controlled trial.,-,-,-,-,-
-159,False,Model A's decision is correct. The study focuses on the rationale and study designs for combining MKIs with ICIs but does not present a randomized controlled trial with specified outcomes.,-,-,-,-,-
-160,False,"Model A's analysis is correct. The study includes various solid tumors, not exclusively hepatocellular carcinoma, and lacks a clear comparison group. The outcomes focus on safety and antitumor activities, not specifically survival or response rates.",-,-,-,-,-
-161,False,"Model A's analysis is correct. The intervention is not an immune checkpoint inhibitor, and there is no comparison group. The study design is not a randomized controlled trial.",-,-,-,-,-
-162,False,"Model A's analysis is correct. The study does not specify a comparison group, and the study design is not a randomized controlled trial.",-,-,-,-,-
-163,False,"Model A's analysis is correct. The intervention is not an immune checkpoint inhibitor, and there is no comparison group. The study design is not a randomized controlled trial.",-,-,-,-,-
-164,False,"Model A's analysis is correct. The intervention is not an immune checkpoint inhibitor, and the study design is not a randomized controlled trial.",-,-,-,-,-
-165,False,"Model A's analysis is correct. The intervention is not an immune checkpoint inhibitor, and the outcomes focus on patient satisfaction and procedural variables, not survival or response rates.",-,-,-,-,-
-166,False,"Model A's analysis is correct. The study does not specify a comparison group, and the study design is not a randomized controlled trial.",-,-,-,-,-
-167,False,"Model A's analysis is correct. The intervention is not an immune checkpoint inhibitor, and there is no comparison group. The study design is not specified.",-,-,-,-,-
-168,False,"Model A's analysis is correct. The intervention is not an immune checkpoint inhibitor, and the study design is not a randomized controlled trial.",-,-,-,-,-
-169,False,"Model A's analysis is correct. The population is not human patients with hepatocellular carcinoma, the intervention is not an immune checkpoint inhibitor, and there is no comparison group. The study design is not a randomized controlled trial.",-,-,-,-,-
-170,False,Model A's decision is correct. The intervention and population do not match the PICOS criteria.,-,-,-,-,-
-171,False,"Model A's decision is correct. The intervention does not involve immune checkpoint inhibitors, and the comparison is not specified.",-,-,-,-,-
-172,False,"Model A's decision is correct. The intervention does not involve immune checkpoint inhibitors, and the comparison is not specified.",-,-,-,-,-
-173,False,"Model A's decision is correct. The intervention does not involve immune checkpoint inhibitors, and the study design is not a randomized controlled trial.",-,-,-,-,-
-174,False,"Model A's decision is correct. The intervention does not involve immune checkpoint inhibitors, and the comparison and study design are not specified.",-,-,-,-,-
-175,False,"Model A's decision is correct. The intervention does not involve immune checkpoint inhibitors, and the comparison is not specified.",-,-,-,-,-
-176,False,"Model A's decision is correct. The intervention does not involve immune checkpoint inhibitors, and the comparison is not specified.",-,-,-,-,-
-177,False,"Model A's decision is correct. The intervention does not involve immune checkpoint inhibitors, and the study design is not a randomized controlled trial.",-,-,-,-,-
-178,False,"Model A's decision is correct. The intervention does not involve immune checkpoint inhibitors, and the study design is not a randomized controlled trial.",-,-,-,-,-
-179,False,"Model A's decision is correct. The intervention does not involve immune checkpoint inhibitors, and the comparison is not specified.",-,-,-,-,-
-180,False,"Model A's decision is correct. The population, intervention, and study design do not match the PICOS criteria.",-,-,-,-,-
-181,False,"Model A's decision is correct. The population includes HCC but is not exclusive, and the intervention includes ICIs plus antiangiogenic agents. The study design is observational, not a randomized controlled trial.",-,-,-,-,-
-182,False,"Model A's decision is correct. The intervention is lenvatinib, which is not an ICI, and the study design is observational, not a randomized controlled trial.",-,-,-,-,-
-183,False,"Model A's decision is correct. The intervention is NK cell infusion, not an ICI, and the study design is a single-arm phase I study, not a randomized controlled trial.",-,-,-,-,-
-184,False,"Model A's decision is correct. The comparison is with/without a digital patient monitoring tool, not a treatment without ICIs or placebo, and the outcomes do not include survival or response rate. The study design is not a randomized controlled trial.",-,-,-,-,-
-185,False,"Model A's decision is correct. The intervention is not specified, and the study design is not a randomized controlled trial. Outcomes are not related to survival or response rate.",-,-,-,-,-
-186,False,"Model A's decision is correct. The intervention is pegylated arginase plus chemotherapy, not an ICI, and the study design is a single centre phase 1 trial, not a randomized controlled trial.",-,-,-,-,-
-187,False,"Model A's decision is correct. The population includes HCC but is not exclusive, and the intervention includes isatuximab plus atezolizumab. The study design is a phase I/II study, not a randomized controlled trial.",-,-,-,-,-
-188,False,"Model A's decision is correct. The intervention is TAE therapy with/without iNKT cell infusion, not an ICI. The study design is a randomized controlled trial, but the intervention does not match the PICOS criteria.",-,-,-,-,-
-189,False,"Model A's decision is correct. The population is patients with liver tumors, not specifically HCC, and the intervention is a pre-emptive erector spinae plane block, not an ICI. The outcomes are not related to survival or response rate, and the study design is a randomized study, not a randomized controlled trial for ICIs.",-,-,-,-,-
-190,False,"Model A's decision is correct. The study focuses on MRI features and their predictive value for immunotherapy response, but does not directly involve immune checkpoint inhibitors or a randomized controlled trial design.",-,-,-,-,-
-191,False,"Model A's decision is correct. The study evaluates the use of sorafenib in HCC patients, but does not involve immune checkpoint inhibitors or a randomized controlled trial design.",-,-,-,-,-
-192,False,"Model A's decision is correct. The study population is patients with stage III-IV lung cancer, and the intervention is DEB-TACE, which does not meet the PICOS criteria.",-,-,-,-,-
-193,False,"Model A's decision is correct. The study population is pediatric hepatoblastoma patients, and the intervention is HIFU combined with TACE, which does not meet the PICOS criteria.",-,-,-,-,-
-194,False,"Model A's decision is correct. The study evaluates recurrence after curative-intent resection or ablation in HCC patients, but does not involve immune checkpoint inhibitors or a randomized controlled trial design.",-,-,-,-,-
-196,False,"Model A's decision is correct. The study evaluates preoperative chemotherapy in HCC patients, but does not involve immune checkpoint inhibitors or a randomized controlled trial design.",-,-,-,-,-
-197,False,"Model A's decision is correct. The study compares IRE and RFA in HCC patients, but the intervention is not an immune checkpoint inhibitor.",-,-,-,-,-
-198,False,"Model A's decision is correct. The study evaluates radiation dose received by the operator during TACE, but does not involve immune checkpoint inhibitors or focus on survival or response rates.",-,-,-,-,-
-199,False,"Model A's decision is correct. The study evaluates a physical activity rehabilitation program in liver cancer patients undergoing TACE, but the population is not specifically HCC and the intervention is not an immune checkpoint inhibitor.",-,-,-,-,-
-195,False,Abstract too short or empty,-,-,-,-,-
-200,False,"Model A's decision is correct. The population, intervention, and study design do not match the PICOS criteria.",-,-,-,-,-
-201,False,"Model A's decision is correct. The intervention and comparison are not related to ICIs, and the outcomes do not include survival or response rate. The study design is also not a randomized controlled trial.",-,-,-,-,-
-202,False,"Model A's decision is correct. The population, intervention, and outcomes do not match the PICOS criteria, and the study design is not a randomized controlled trial.",-,-,-,-,-
-204,False,"Model A's decision is correct. The intervention and comparison are not related to ICIs, and the primary outcome does not include survival or response rate. The study design is a randomized controlled trial but not focused on ICIs.",-,-,-,-,-
-205,False,"Model A's decision is correct. The intervention and comparison are not related to ICIs, and the outcomes do not include survival or response rate. The study design is a randomized controlled trial but not focused on ICIs.",-,-,-,-,-
-203,False,Abstract too short or empty,-,-,-,-,-
+Index,B_Decision,B_Reason,B_P,B_I,B_C,B_O,B_S
+0,False,"Population does not match hepatocellular carcinoma, it is for biliary tract cancer.",patients with advanced biliary tract cancer,-,-,-,-
+1,False,Intervention does not involve immune checkpoint inhibitors.,-,lenvatinib,sorafenib,-,-
+2,True,Matches all PICOS criteria.,-,-,-,-,-
+3,True,Matches all PICOS criteria.,-,-,-,-,-
+4,True,Matches all PICOS criteria.,-,-,-,-,-
+5,True,Matches all PICOS criteria.,-,-,-,-,-
+6,True,Matches all PICOS criteria.,-,-,-,-,-
+7,False,"Population does not match hepatocellular carcinoma, it is for gastric or gastro-oesophageal junction cancer.","patients with HER2-negative, unresectable gastric or gastro-oesophageal junction cancer",-,-,-,-
+8,False,Intervention does not involve immune checkpoint inhibitors.,-,lenvatinib plus transarterial chemoembolization,lenvatinib monotherapy,-,-
+9,True,Matches all PICOS criteria.,-,-,-,-,-
+10,False,"The intervention is cabozantinib, not an immune checkpoint inhibitor.",patients with advanced hepatocellular carcinoma previously treated with sorafenib,cabozantinib,placebo,"overall survival, progression-free survival, objective response rate","randomized, double-blind, phase 3 trial"
+11,True,Matches PICOS criteria.,-,-,-,-,-
+12,False,"The intervention is regorafenib, not an immune checkpoint inhibitor.",patients with hepatocellular carcinoma who progressed on sorafenib,regorafenib,placebo,overall survival,"randomized, double-blind, phase 3 trial"
+13,True,Matches PICOS criteria.,-,-,-,-,-
+14,True,Matches PICOS criteria.,-,-,-,-,-
+15,True,Matches PICOS criteria.,-,-,-,-,-
+16,False,"The intervention is FOLFOX-HAIC, not an immune checkpoint inhibitor.",hepatocellular carcinoma patients with microvascular invasion,FOLFOX-HAIC,routine follow-up,"disease-free survival, overall survival","randomized, open-label, multicenter trial"
+17,False,"The intervention is FOLFOX-HAIC, not an immune checkpoint inhibitor.",patients with unresectable hepatocellular carcinoma,FOLFOX-HAIC,TACE,"overall survival, progression-free survival","randomized, multicenter, open-label trial"
+18,False,"The intervention is lenvatinib, not an immune checkpoint inhibitor.",patients with unresectable hepatocellular carcinoma,lenvatinib,sorafenib,"overall survival, progression-free survival, objective response rate","randomized, non-inferiority, phase 3 trial"
+19,False,"The intervention is liver transplantation, not an immune checkpoint inhibitor.",patients with hepatocellular carcinoma beyond Milan criteria,liver transplantation,non-transplantation therapies,"tumor event-free survival, overall survival","randomized, controlled trial"
+20,False,Outcome does not match survival or response rate,-,-,-,Survival or response rate,-
+21,False,Study design is not a randomized controlled trial,-,-,-,-,Randomized controlled trial
+22,True,Matches all PICOS criteria,-,-,-,-,-
+23,False,Intervention does not involve immune checkpoint inhibitors,-,-,-,-,-
+24,False,Intervention is not an immune checkpoint inhibitor,-,-,-,-,-
+25,False,Population and intervention do not match PICOS criteria,Patients with hepatocellular carcinoma,Immune checkpoint inhibitors,-,-,-
+26,False,Intervention is not an immune checkpoint inhibitor,-,-,-,-,-
+27,True,Matches all PICOS criteria,-,-,-,-,-
+28,True,Matches all PICOS criteria,-,-,-,-,-
+29,False,Intervention does not involve immune checkpoint inhibitors,-,-,-,-,-
+30,True,Model A correctly identifies the study as matching PICOS criteria,-,-,-,-,-
+31,True,Model A correctly identifies the study as matching PICOS criteria,-,-,-,-,-
+32,False,"Intervention is not immune checkpoint inhibitors, Model A correctly identifies this discrepancy",-,yttrium-90 transarterial radioembolization,doxorubicin drug-eluting bead transarterial chemoembolization,-,-
+33,False,"No comparison or randomized controlled trial design, Model A correctly identifies this discrepancy",-,anti-PD-1 immunotherapy,-,-,-
+34,False,"Intervention is not immune checkpoint inhibitors, Model A correctly identifies this discrepancy",-,sorafenib plus hepatic arterial infusion chemotherapy,sorafenib alone,-,-
+35,False,"Intervention is not immune checkpoint inhibitors, Model A correctly identifies this discrepancy",-,lenvatinib vs. sorafenib,lenvatinib vs. sorafenib,-,-
+36,False,"Intervention is not immune checkpoint inhibitors, Model A correctly identifies this discrepancy",-,sorafenib,placebo,-,-
+37,False,"Intervention is not immune checkpoint inhibitors, Model A correctly identifies this discrepancy",-,Fuzheng Jiedu Xiaoji formulation combined with standard treatment,standard treatment alone,-,-
+38,False,"Intervention is not immune checkpoint inhibitors, Model A correctly identifies this discrepancy",-,yttrium-90 radioembolization,conventional transarterial chemoembolization,-,-
+39,False,"Intervention is not immune checkpoint inhibitors, Model A correctly identifies this discrepancy",-,apatinib,placebo,-,-
+40,False,The intervention is interventional hepatic arterial infusion chemotherapy (HAIC-FO) rather than immune checkpoint inhibitors.,patients with advanced hepatocellular carcinoma,HAIC-FO,sorafenib,overall survival,randomized controlled trial
+41,True,Matches all PICOS criteria correctly.,patients with hepatocellular carcinoma and microvascular invasion,sintilimab (PD-1 inhibitor),active surveillance,recurrence-free survival,randomized controlled trial
+42,True,Matches all PICOS criteria correctly.,patients with unresectable hepatocellular carcinoma,atezolizumab + bevacizumab,sorafenib,"objective response rate, depth and duration of response",randomized controlled trial
+43,False,The intervention is POSTN gene knockdown rather than immune checkpoint inhibitors.,patients with hepatocellular carcinoma,POSTN gene knockdown,not specified,tumor formation and stemness factors,not specified
+44,False,The intervention is TACE plus RT rather than immune checkpoint inhibitors.,patients with hepatocellular carcinoma and macroscopic vascular invasion,TACE plus RT,sorafenib,"progression-free survival, overall survival",randomized controlled trial
+45,True,Matches all PICOS criteria correctly.,patients with advanced hepatocellular carcinoma,atezolizumab + bevacizumab,sorafenib,patient-reported outcomes,randomized controlled trial
+46,False,The intervention is selective internal radiotherapy (SIRT) rather than immune checkpoint inhibitors.,patients with advanced hepatocellular carcinoma,selective internal radiotherapy,sorafenib,overall survival,randomized controlled trial
+47,False,The intervention is sorafenib rather than immune checkpoint inhibitors.,patients with hepatocellular carcinoma,sorafenib,placebo,recurrence-free survival,randomized controlled trial
+48,False,The intervention is sorafenib plus TACE rather than immune checkpoint inhibitors.,patients with recurrent intermediate-stage hepatocellular carcinoma,sorafenib plus TACE,TACE alone,overall survival,randomized controlled trial
+49,True,Matches all PICOS criteria correctly.,patients with advanced hepatocellular carcinoma,cabozantinib plus atezolizumab,sorafenib,"overall survival, progression-free survival",randomized controlled trial
+50,True,Model A's decision is correct. All PICOS elements align with the abstract.,-,-,-,-,-
+51,False,Model A correctly identified that the intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+52,False,Model A correctly identified that the intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+53,True,Model A's decision is correct. All PICOS elements align with the abstract.,-,-,-,-,-
+54,True,Model A's decision is correct. All PICOS elements align with the abstract.,-,-,-,-,-
+55,False,Model A correctly identified that the intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+56,False,Model A correctly identified that the intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+57,False,Model A correctly identified that the intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+58,False,Model A correctly identified that the intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+59,True,"Model A's decision is correct. All PICOS elements align with the abstract, except the comparison is not specified.",-,-,not specified,-,phase I/II study
+60,False,Intervention does not match PICOS criteria,-,Irradiation stent placement with 125 I plus TACE,Sorafenib plus TACE,-,-
+61,True,Matches PICOS criteria,-,Camrelizumab plus TACE,TACE alone,-,-
+62,True,Matches PICOS criteria,-,Tislelizumab,Sorafenib,-,-
+63,False,Intervention does not match PICOS criteria,-,Lenvatinib,Sorafenib,-,-
+64,False,Intervention does not match PICOS criteria,-,TACE plus sorafenib,TACE alone,-,-
+65,False,Intervention does not match PICOS criteria,-,TACE followed by HAIC with or without oral S-1,TACE followed by HAIC,-,-
+66,False,Intervention does not match PICOS criteria,-,Prophylactic antibiotics,Intravenous vs oral administration,-,-
+67,True,Matches PICOS criteria,-,Neoadjuvant pembrolizumab plus lenvatinib,Control group (no neoadjuvant therapy),-,-
+68,False,Intervention and study design not specified,-,-,-,-,-
+69,False,Intervention does not match PICOS criteria,-,Sunitinib plus TACE,Sorafenib plus TACE,-,-
+70,False,Intervention does not match immune checkpoint inhibitors,-,-,-,-,-
+72,True,Matches all PICOS criteria,-,-,-,-,-
+73,False,Intervention does not match immune checkpoint inhibitors,-,-,-,-,-
+74,False,Intervention does not match immune checkpoint inhibitors,-,-,-,-,-
+75,False,Population is not HCC patients,-,-,-,-,-
+76,False,Study design is not randomized controlled trial,-,-,-,-,-
+77,False,Intervention does not match immune checkpoint inhibitors,-,-,-,-,-
+78,False,Study design is not randomized controlled trial,-,-,-,-,-
+79,False,Population is not HCC patients,-,-,-,-,-
+71,False,Abstract too short or empty,-,-,-,-,-
+80,False,The intervention is not immune checkpoint inhibitors.,-,-,-,-,-
+81,False,The intervention is not immune checkpoint inhibitors.,-,-,-,-,-
+82,False,The intervention is not immune checkpoint inhibitors.,-,-,-,-,-
+83,False,The intervention is not immune checkpoint inhibitors.,-,-,-,-,-
+84,False,The study design is not a randomized controlled trial.,-,-,-,-,-
+85,False,The intervention is not immune checkpoint inhibitors.,-,-,-,-,-
+86,False,The intervention is not immune checkpoint inhibitors.,-,-,-,-,-
+87,False,The population is not hepatocellular carcinoma patients.,-,-,-,-,-
+88,False,The intervention is not immune checkpoint inhibitors.,-,-,-,-,-
+89,False,The intervention is not immune checkpoint inhibitors.,-,-,-,-,-
+90,False,The intervention is not immune checkpoint inhibitors.,-,-,-,-,-
+91,False,The intervention is not immune checkpoint inhibitors.,-,-,-,-,-
+92,False,The intervention is not immune checkpoint inhibitors.,-,-,-,-,-
+93,False,The intervention is not immune checkpoint inhibitors.,-,-,-,-,-
+94,False,The intervention is not immune checkpoint inhibitors.,-,-,-,-,-
+95,False,The intervention is not immune checkpoint inhibitors.,-,-,-,-,-
+96,False,The intervention is not immune checkpoint inhibitors.,-,-,-,-,-
+97,False,The intervention is not immune checkpoint inhibitors.,-,-,-,-,-
+98,False,The intervention is not immune checkpoint inhibitors.,-,-,-,-,-
+99,True,Matches all PICOS criteria.,-,-,-,-,-
+100,False,"The study focuses on predicting acute liver function deterioration, not survival or response rate.",-,-,-,-,-
+101,False,"The study investigates prognostic value of imaging features, not immune checkpoint inhibitors.",-,-,-,-,-
+102,False,"The intervention is cabozantinib, not an immune checkpoint inhibitor.",-,-,-,-,-
+103,False,"The study is retrospective, not a randomized controlled trial.",-,-,-,-,-
+104,False,"The intervention is sorafenib, not an immune checkpoint inhibitor.",-,-,-,-,-
+105,False,"The study is a post hoc analysis, not a randomized controlled trial.",-,-,-,-,-
+106,False,"The intervention is sorafenib, not an immune checkpoint inhibitor.",-,-,-,-,-
+107,False,"The study is retrospective, not a randomized controlled trial.",-,-,-,-,-
+108,False,"The intervention is TACE with miriplatin, not an immune checkpoint inhibitor.",-,-,-,-,-
+109,False,"The intervention is SIRT + sorafenib, not an immune checkpoint inhibitor.",-,-,-,-,-
+110,False,Intervention is not immune checkpoint inhibitors (ICIs),-,-,-,-,-
+111,False,Intervention is not immune checkpoint inhibitors (ICIs),-,-,-,-,-
+112,False,Intervention is not immune checkpoint inhibitors (ICIs),-,-,-,-,-
+113,False,Intervention is not immune checkpoint inhibitors (ICIs),-,-,-,-,-
+114,False,Intervention is not immune checkpoint inhibitors (ICIs),-,-,-,-,-
+115,False,Intervention is not immune checkpoint inhibitors (ICIs),-,-,-,-,-
+116,False,Intervention is not immune checkpoint inhibitors (ICIs),-,-,-,-,-
+117,False,Intervention is not immune checkpoint inhibitors (ICIs),-,-,-,-,-
+118,False,Intervention is not immune checkpoint inhibitors (ICIs),-,-,-,-,-
+119,False,Intervention is not immune checkpoint inhibitors (ICIs),-,-,-,-,-
+120,False,The intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+121,False,The intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+122,False,The intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+123,False,The intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+124,False,The intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+125,False,The intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+126,False,Population and intervention do not match target criteria.,-,-,-,-,-
+127,False,The intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+128,False,The intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+129,False,The intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+130,False,"Population is CRLM, not hepatocellular carcinoma",patients with CRLM,-,-,-,-
+131,False,"Intervention is HAIC, not immune checkpoint inhibitors",patients with HCC,prophylactic HAIC,HAIC vs no HAIC,-,-
+132,False,"Study design is retrospective, not randomized controlled trial",patients with HCC and tumor portal invasion,percutaneous ablation,ablation vs sorafenib or TARE,-,retrospective study
+133,False,"Intervention is TRA/TFA, not immune checkpoint inhibitors",patients with HCC,TRA vs TFA for TACE,TRA vs TFA,-,-
+134,False,"Intervention is LR/TACE/sorafenib, not immune checkpoint inhibitors",patients with HCC and PVTT,"LR, TACE, or sorafenib",LR vs TACE vs sorafenib,-,-
+135,False,"Intervention is lamivudine, not immune checkpoint inhibitors",HBV-related HCC patients,lamivudine with TACE,lamivudine vs control,-,-
+136,False,"Intervention is sorafenib-GEMOX, not immune checkpoint inhibitors",patients with aHCC,sorafenib-GEMOX vs sorafenib,sorafenib-GEMOX vs sorafenib,-,-
+137,False,"Intervention is TEA/TACE, not immune checkpoint inhibitors",patients with unresectable HCC,TEA vs TACE,TEA vs TACE,-,-
+138,False,"Intervention is ramucirumab, not immune checkpoint inhibitors",patients with HCC and AFP ≥400 ng/mL,ramucirumab,ramucirumab vs placebo,-,post-hoc analysis of phase III trials
+139,False,"Intervention is TACE, not immune checkpoint inhibitors",HBV-related HCC patients,TACE,-,-,-
+140,False,Intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+141,False,Intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+142,False,Intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+143,False,Intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+144,False,Intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+145,False,Intervention not specified and does not involve immune checkpoint inhibitors.,-,-,-,-,-
+146,False,Intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+147,False,Intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+148,False,Intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+149,False,Intervention not specified and does not involve immune checkpoint inhibitors.,-,-,-,-,-
+150,False,"The intervention involves TACE, not immune checkpoint inhibitors (ICIs).",-,-,-,-,-
+151,False,"The intervention involves TACE with gelatin sponge particles plus Huaier granule, not immune checkpoint inhibitors (ICIs).",-,-,-,-,-
+152,False,"The intervention involves TACE with low-molecular-weight heparins (LMWHs), not immune checkpoint inhibitors (ICIs).",-,-,-,-,-
+153,False,"The intervention involves individualized nutritional intervention, not immune checkpoint inhibitors (ICIs).",-,-,-,-,-
+154,False,"The intervention involves partial hepatectomy, not immune checkpoint inhibitors (ICIs).",-,-,-,-,-
+155,False,"The intervention involves selective internal radiation therapy (SIRT), not immune checkpoint inhibitors (ICIs).",-,-,-,-,-
+156,False,"The intervention involves CalliSpheres beads loaded with arsenic trioxide (CBATO-TACE), not immune checkpoint inhibitors (ICIs).",-,-,-,-,-
+157,False,"The intervention involves image-guided high-dose-rate brachytherapy (iBT), not immune checkpoint inhibitors (ICIs).",-,-,-,-,-
+158,False,"The intervention involves regorafenib, not immune checkpoint inhibitors (ICIs).",-,-,-,-,-
+159,True,The intervention includes immune checkpoint inhibitors (ICIs) atezolizumab and bevacizumab.,-,-,-,-,-
+160,False,The study does not include immune checkpoint inhibitors as the intervention.,-,-,-,-,-
+161,False,The study does not include immune checkpoint inhibitors as the intervention.,-,-,-,-,-
+162,False,The study does not include immune checkpoint inhibitors as the intervention.,-,-,-,-,-
+163,False,The study does not include immune checkpoint inhibitors as the intervention.,-,-,-,-,-
+164,False,The study does not include immune checkpoint inhibitors as the intervention.,-,-,-,-,-
+165,False,The study does not include immune checkpoint inhibitors as the intervention.,-,-,-,-,-
+166,False,The study does not include immune checkpoint inhibitors as the intervention.,-,-,-,-,-
+167,False,The study does not include immune checkpoint inhibitors as the intervention.,-,-,-,-,-
+168,False,The study does not include immune checkpoint inhibitors as the intervention.,-,-,-,-,-
+169,False,The study does not include immune checkpoint inhibitors as the intervention.,-,-,-,-,-
+170,False,The study does not evaluate immune checkpoint inhibitors (ICIs). It focuses on cost-utility analysis comparing TARE and sorafenib.,-,-,-,-,-
+171,False,The study does not evaluate immune checkpoint inhibitors (ICIs). It focuses on the combination of sorafenib and radioembolization (Y90) compared to Y90 alone.,-,-,-,-,-
+172,False,The study does not evaluate immune checkpoint inhibitors (ICIs). It compares TACE plus HIFU to TACE alone.,-,-,-,-,-
+173,False,The study does not evaluate immune checkpoint inhibitors (ICIs). It compares preoperative interview and prospective nursing to routine nursing care.,-,-,-,-,-
+174,False,The study does not evaluate immune checkpoint inhibitors (ICIs). It evaluates regorafenib compared to placebo.,-,-,-,-,-
+175,False,The study does not evaluate immune checkpoint inhibitors (ICIs). It compares embolization with doxorubicin-eluting microspheres to embolization with microspheres alone.,-,-,-,-,-
+176,False,The study does not evaluate immune checkpoint inhibitors (ICIs). It evaluates brivanib compared to placebo.,-,-,-,-,-
+177,False,"The study is a retrospective review, not a randomized controlled trial.",-,-,-,-,retrospective review
+178,False,The study does not evaluate immune checkpoint inhibitors (ICIs). It evaluates enzalutamide compared to placebo.,-,-,-,-,-
+179,False,The study does not evaluate immune checkpoint inhibitors (ICIs). It evaluates radioembolization with yttrium-90 followed by sorafenib compared to sorafenib alone.,-,-,-,-,-
+180,False,"Intervention is not immune checkpoint inhibitors (ICIs), and comparison is not against placebo or non-ICI treatment.",-,-,-,-,-
+181,False,"Population is not specific to hepatocellular carcinoma, and intervention is not ICIs.",-,-,-,-,-
+182,False,Intervention is not immune checkpoint inhibitors (ICIs).,-,-,-,-,-
+183,False,Intervention is not immune checkpoint inhibitors (ICIs).,-,-,-,-,-
+184,False,"Population is pediatric hepatoblastoma, not hepatocellular carcinoma, and intervention is not ICIs.",-,-,-,-,-
+185,False,"Intervention is not ICIs, and study design is not randomized controlled trial.",-,-,-,-,-
+186,False,"Intervention is not ICIs, and outcome is not survival or response rate.",-,-,-,-,-
+187,False,Intervention is not immune checkpoint inhibitors (ICIs).,-,-,-,-,-
+188,False,"Intervention is not ICIs, and comparison is not specified.",-,-,-,-,-
+189,False,"Intervention is not ICIs, and outcome is not survival or response rate.",-,-,-,-,-
+190,False,The intervention does not involve immune checkpoint inhibitors.,-,TACE with lobaplatin,TACE with cisplatin,efficacy and adverse events,randomized controlled trial
+191,False,"The intervention does not involve immune checkpoint inhibitors, and the study design is not a randomized controlled trial.",patients with advanced HCC,sorafenib,not specified,"overall survival, time to progression, response rate",retrospective study
+192,False,"The intervention does not involve immune checkpoint inhibitors, and the study design is not a randomized controlled trial.",HCC patients beyond Milan criteria,surgical resection or TACE,not specified,survival prediction,observational study
+193,False,The intervention does not involve immune checkpoint inhibitors.,patients with advanced HCC and AFP ≥400 ng/mL,ramucirumab,placebo,time to deterioration in symptoms and quality of life,randomized controlled trial
+194,False,"The intervention does not involve immune checkpoint inhibitors, and the study design is not a randomized controlled trial.",patients with advanced HCC,sorafenib,not specified,overall survival and toxicity,prospective study
+195,False,The intervention does not involve immune checkpoint inhibitors.,HCC patients,sorafenib with or without erlotinib,placebo,overall survival and time to progression,randomized controlled trial
+196,False,The intervention does not involve immune checkpoint inhibitors.,Asian-Pacific patients with advanced HCC,dovitinib,sorafenib,overall survival and time to progression,randomized phase 2 study
+197,False,The intervention does not involve immune checkpoint inhibitors.,HCC patients on waiting list for liver transplantation,TACE plus sorafenib,TACE plus placebo,time to progression and tumor response,randomized controlled trial
+198,False,The intervention does not involve immune checkpoint inhibitors.,patients with unresectable HCC,miriplatin/DDP-H combination therapy,miriplatin monotherapy,progression-free survival and disease control rate,randomized phase 2 study
+199,False,The intervention does not involve immune checkpoint inhibitors.,patients with primary hepatocellular carcinoma,TACE,radiofrequency ablation,short-term curative effect and survival,randomized controlled trial
+200,False,The intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+201,False,The intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+202,False,The intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+203,False,The intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+204,False,The intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+205,False,The intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+206,False,The intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+207,False,The intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+208,False,The intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+209,False,The intervention does not involve immune checkpoint inhibitors.,-,-,-,-,-
+210,False,Intervention is not immune checkpoint inhibitors,-,-,-,-,-
+211,False,Intervention is not immune checkpoint inhibitors,-,-,-,-,-
+212,False,Intervention is not immune checkpoint inhibitors,-,-,-,-,-
+213,False,Intervention is not immune checkpoint inhibitors,-,-,-,-,-
+214,False,Intervention is not immune checkpoint inhibitors,-,-,-,-,-
+215,False,"Intervention is not immune checkpoint inhibitors, no comparison group",-,-,-,-,-
+216,False,Intervention is not immune checkpoint inhibitors,-,-,-,-,-
+217,False,Intervention is not immune checkpoint inhibitors,-,-,-,-,-
+218,False,Intervention is not immune checkpoint inhibitors,-,-,-,-,-
+219,False,Intervention is not immune checkpoint inhibitors,-,-,-,-,-
+220,False,The intervention is stereotactic ablative radiotherapy (SABR) instead of immune checkpoint inhibitors (ICIs).,patients with unresectable HCC and incomplete response after initial TACE,-,re-TACE,"1-year freedom-from-local-progression rate, overall survival, response rate",randomized controlled trial
+221,False,The intervention is radiofrequency or microwave ablation combined with TACE instead of immune checkpoint inhibitors (ICIs).,patients with nonresectable single-lesion HCC,-,TACE alone,"success rate, complications",not specified
+222,False,The intervention is transarterial chemoembolization with stable or unstable emulsions instead of immune checkpoint inhibitors (ICIs).,patients with inoperable HCC,-,stable vs unstable emulsions,"overall survival, tumor response",randomized controlled trial
+223,False,The intervention is sorafenib with or without everolimus instead of immune checkpoint inhibitors (ICIs).,patients with unresectable or metastatic HCC,-,sorafenib alone vs sorafenib + everolimus,"progression-free survival, overall survival, response rate",randomized controlled trial
+224,False,The intervention is everolimus instead of immune checkpoint inhibitors (ICIs).,patients with advanced HCC who failed sorafenib,-,placebo,"overall survival, time to progression",randomized controlled trial
+225,False,The intervention is TACE instead of immune checkpoint inhibitors (ICIs).,HCC patients receiving preoperative TACE,-,not specified,"recurrence rate, disease-free survival",retrospective study
+226,False,The intervention is ramucirumab instead of immune checkpoint inhibitors (ICIs).,HCC patients with AFP ≥400 ng/ml who progressed on sorafenib,-,placebo,"cost-effectiveness, quality-adjusted life years",Markov model analysis
+227,False,The intervention is TACE with ginsenoside Rg3 instead of immune checkpoint inhibitors (ICIs).,patients with advanced HCC,-,TACE alone,"overall survival, disease control rate",randomized controlled trial
+228,False,The intervention is AEG35156 with sorafenib instead of immune checkpoint inhibitors (ICIs).,patients with advanced HCC,-,sorafenib alone,"progression-free survival, overall survival",randomized controlled trial
+229,False,The interventions are SIRT or sorafenib instead of immune checkpoint inhibitors (ICIs).,patients with locally advanced HCC,-,SIRT vs sorafenib,"overall survival, tumor response",randomized controlled trial
+230,False,"Population does not match PICOS criteria, focuses on cholangiocellular carcinoma, not hepatocellular carcinoma.",patients with intrahepatic cholangiocellular carcinoma,-,-,-,-
+231,False,"Intervention does not match PICOS criteria, focuses on transarterial chemoembolization, not immune checkpoint inhibitors.",-,transarterial chemoembolization (TACE),TACE vs. proton beam radiation therapy,-,-
+232,False,"Outcome does not match PICOS criteria, focuses on quality of life and performance status, not survival or response rate.",-,ramucirumab,ramucirumab vs. placebo,"quality of life, performance status",-
+233,False,"Intervention and outcome do not match PICOS criteria, focuses on radiation exposure and image quality.",patients with primary or secondary liver cancer,transarterial chemoembolization (TACE),old vs. new C-arm imaging platform,"radiation exposure, image quality",prospective trial
+234,False,"Intervention does not match PICOS criteria, focuses on sorafenib and bevacizumab, not immune checkpoint inhibitors.",-,sorafenib and bevacizumab,sorafenib and bevacizumab vs. sorafenib alone,-,phase I/II trial
+235,False,"Intervention and study design do not match PICOS criteria, focuses on doxorubicin-eluting bead-transarterial chemoembolization and sorafenib.",-,doxorubicin-eluting bead-transarterial chemoembolization (DEB TACE) and sorafenib,-,-,single center study
+236,False,"Intervention does not match PICOS criteria, focuses on mapatumumab and sorafenib, not immune checkpoint inhibitors.",-,mapatumumab and sorafenib,mapatumumab and sorafenib vs. placebo and sorafenib,-,randomized controlled trial
+237,False,"Intervention and outcome do not match PICOS criteria, focuses on Jian Pi Li Qi (JPLQ) decoction.",-,Jian Pi Li Qi (JPLQ) decoction,JPLQ vs. placebo vs. no treatment,"quality of life, liver function",randomized controlled trial
+238,False,"Intervention does not match PICOS criteria, focuses on tigatuzumab and sorafenib, not immune checkpoint inhibitors.",-,tigatuzumab and sorafenib,tigatuzumab and sorafenib vs. sorafenib alone,-,randomized controlled trial
+239,False,"Intervention and outcome do not match PICOS criteria, focuses on parecoxib sodium for pain control.",-,parecoxib sodium,parecoxib sodium vs. placebo,"pain control, quality of life",randomized controlled trial
+240,False,Intervention is not immune checkpoint inhibitors,-,-,-,-,-
+241,False,"Population, intervention, and outcomes do not match PICOS",-,-,-,-,-
+242,False,Intervention is not immune checkpoint inhibitors,-,-,-,-,-
+243,False,Intervention and outcomes do not match PICOS,-,-,-,-,-
+244,False,"Population, intervention, and outcomes do not match PICOS",-,-,-,-,-
+245,False,Intervention and outcomes do not match PICOS,-,-,-,-,-
+246,False,Intervention is not immune checkpoint inhibitors,-,-,-,-,-
+247,False,Intervention and study design do not match PICOS,-,-,-,-,-
+248,False,Intervention is not immune checkpoint inhibitors,-,-,-,-,-
+249,False,Intervention is not immune checkpoint inhibitors,-,-,-,-,-
+250,False,The intervention is not immune checkpoint inhibitors.,-,-,-,-,-
+251,False,The intervention is not immune checkpoint inhibitors.,-,-,-,-,-
+252,False,The intervention is not immune checkpoint inhibitors.,-,-,-,-,-
+253,False,The intervention is not immune checkpoint inhibitors.,-,-,-,-,-
+254,False,The intervention is not immune checkpoint inhibitors.,-,-,-,-,-
+255,False,The intervention is not immune checkpoint inhibitors.,-,-,-,-,-
+256,False,The intervention is not immune checkpoint inhibitors.,-,-,-,-,-
+257,False,The intervention is not immune checkpoint inhibitors.,-,-,-,-,-
+258,False,The intervention is not immune checkpoint inhibitors.,-,-,-,-,-
+259,False,The intervention is not immune checkpoint inhibitors.,-,-,-,-,-
+260,False,"The intervention is DEB-TACE, not immune checkpoint inhibitors.",-,DEB-TACE,conventional TACE,"time-to-tumour progression, 2-year survival",randomized controlled trial
+261,False,"The intervention includes sorafenib and TACE, not immune checkpoint inhibitors.",-,"sorafenib, TACE, sorafenib combined with TACE",TACE or sorafenib alone,"total effective rate, total survival",not specified
+262,True,The article matches all PICOS criteria.,patients with hepatocellular carcinoma previously treated with sorafenib,pembrolizumab plus best supportive care,placebo plus best supportive care,health-related quality of life,randomized controlled trial
+263,False,"The population is differentiated thyroid carcinoma, not hepatocellular carcinoma.",patients with differentiated thyroid carcinoma,sorafenib,not specified,"progression-free survival, adverse events",phase III trial
+264,False,"The population is radioiodine-refractory differentiated thyroid cancer, not hepatocellular carcinoma.",patients with radioiodine-refractory differentiated thyroid cancer,lenvatinib,placebo,tumor size change,not specified
+265,False,"The intervention is tivantinib, not immune checkpoint inhibitors.",Japanese patients with MET-high hepatocellular carcinoma,tivantinib,placebo,"progression-free survival, overall survival",randomized controlled trial
+266,False,"The intervention is regorafenib, not immune checkpoint inhibitors.",patients with hepatocellular carcinoma progressing during sorafenib treatment,regorafenib,placebo,"overall survival, time to progression",randomized controlled trial
+267,False,"The intervention is TACE with bicarbonate, not immune checkpoint inhibitors.",patients with large hepatocellular carcinoma,TACE with bicarbonate,TACE without bicarbonate,"viable tumor residues, objective response rate",randomized controlled trial
+268,False,"The intervention is a clinical decision support system, not immune checkpoint inhibitors.",patients with hepatocellular carcinoma,clinical decision support system,handbook only,"nursing outcomes, patient outcomes",randomized controlled trial
+269,False,"The intervention is radioembolization with sorafenib, not immune checkpoint inhibitors.",patients with unresectable hepatocellular carcinoma,radioembolization with sorafenib,radioembolization alone,serum angiogenic markers,randomized controlled trial
+270,False,Intervention is not immune checkpoint inhibitors,-,-,-,-,-
+271,False,Intervention is not immune checkpoint inhibitors,-,-,-,-,-
+272,False,Population and intervention do not match PICOS criteria,-,-,-,-,-
+273,False,Intervention is not immune checkpoint inhibitors,-,-,-,-,-
+274,False,Population and intervention do not match PICOS criteria,-,-,-,-,-
+275,False,Intervention is not immune checkpoint inhibitors,-,-,-,-,-
+276,False,Study design and intervention do not match PICOS criteria,-,-,-,-,-
+277,False,Intervention is not immune checkpoint inhibitors,-,-,-,-,-
+278,False,Intervention and outcome do not match PICOS criteria,-,-,-,-,-
+279,False,Intervention is not immune checkpoint inhibitors,-,-,-,-,-
+280,False,"intervention is not immune checkpoint inhibitors, outcome is not survival or response rate",-,medical ozone oil,urea ointment,incidence and severity of hand-foot skin reaction,-

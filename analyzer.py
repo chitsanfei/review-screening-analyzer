@@ -6,6 +6,7 @@ from typing import Dict, List, Optional
 from model_manager import ModelManager
 from prompt_manager import PromptManager
 from result_processor import ResultProcessor
+import re
 
 class PICOSAnalyzer:
     def __init__(self):
@@ -244,31 +245,18 @@ class PICOSAnalyzer:
     
     def _call_model_a(self, abstracts: List[Dict]) -> List[Dict]:
         """Call Model A"""
-        logging.info(f"Preparing Model A request for {len(abstracts)} abstracts")
-        
         abstracts_json = json.dumps([
             {"index": str(item["Index"]), "abstract": item["abstract"]}
             for item in abstracts
         ], indent=2)
-        
-        # Log input data
-        logging.info("Abstracts for processing:")
-        logging.info(abstracts_json)
         
         prompt = self.prompt_manager.get_prompt("model_a").format(
             abstracts_json=abstracts_json,
             **self.picos_criteria
         )
         
-        # Log formatted prompt
-        logging.info("Formatted prompt for Model A:")
-        logging.info(prompt)
-        
         try:
             response = self.model_manager.call_api("model_a", prompt)
-            logging.info("Model A response received:")
-            logging.info(json.dumps(response, indent=2))
-            
             self.result_processor.validate_model_response(response, "model_a")
             return response["analysis"]
         except Exception as e:
@@ -277,60 +265,35 @@ class PICOSAnalyzer:
     
     def _call_model_b(self, abstracts: List[Dict], previous_results: Dict) -> List[Dict]:
         """Call Model B"""
-        logging.debug(f"Preparing Model B batch data for {len(abstracts)} abstracts")
-        batch_data = []
-        
-        # 检查 Model A 的结果格式
         if "model_a" not in previous_results:
-            logging.error("Model A results not found in previous_results")
             raise Exception("Model A results required")
             
         model_a_df = previous_results["model_a"]
-        logging.debug(f"Model A results DataFrame info:")
-        logging.debug(f"Columns: {model_a_df.columns.tolist()}")
-        logging.debug(f"Index: {model_a_df.index.name}")
-        logging.debug(f"Index type: {model_a_df.index.dtype}")
-        logging.debug(f"First few indices: {model_a_df.index.tolist()[:5]}")
-        logging.debug(f"Sample data:\n{model_a_df.head()}")
+        batch_data = []
         
         for abstract in abstracts:
             try:
-                idx = str(abstract["Index"])  # 确保 idx 是字符串
-                logging.debug(f"Processing abstract with index: {idx}")
-                logging.debug(f"Abstract data: {abstract}")
-                
-                # 检查索引是否存在于 Model A 结果中
-                logging.debug(f"Checking if index {idx} exists in Model A results")
-                logging.debug(f"Model A index values: {model_a_df.index.tolist()[:10]}")
+                idx = str(abstract["Index"])
                 
                 if idx not in model_a_df.index:
                     logging.error(f"Index {idx} not found in Model A results")
-                    logging.error(f"Model A index type: {type(model_a_df.index[0])}")
-                    logging.error(f"Searched index type: {type(idx)}")
                     continue
                 
-                # 获取 Model A 的结果
-                logging.debug(f"Retrieving Model A result for index {idx}")
                 a_result = model_a_df.loc[idx]
-                logging.debug(f"Retrieved result type: {type(a_result)}")
-                
                 if not isinstance(a_result, pd.Series):
-                    logging.error(f"Unexpected result type for index {idx}: {type(a_result)}")
-                    logging.error(f"Result content: {a_result}")
+                    logging.error(f"Unexpected result type for index {idx}")
                     continue
                 
                 a_result_dict = a_result.to_dict()
-                logging.debug(f"Converted Model A result to dict for index {idx}: {a_result_dict}")
                 
-                # 检查必需的字段
+                # Check required fields
                 required_fields = ["A_Decision", "A_Reason", "A_P", "A_I", "A_C", "A_O", "A_S"]
                 missing_fields = [field for field in required_fields if field not in a_result_dict]
                 if missing_fields:
                     logging.error(f"Missing required fields in Model A result: {missing_fields}")
-                    logging.error(f"Available fields: {list(a_result_dict.keys())}")
                     continue
                 
-                # 准备数据
+                # Prepare data
                 batch_item = {
                     "Index": idx,
                     "abstract": abstract["abstract"],
@@ -344,45 +307,60 @@ class PICOSAnalyzer:
                         "A_S": a_result_dict["A_S"]
                     }
                 }
-                logging.debug(f"Prepared batch item for index {idx}: {batch_item}")
                 batch_data.append(batch_item)
             except Exception as e:
-                logging.error(f"Error preparing batch data for index {idx}")
-                logging.error(f"Error details: {str(e)}")
-                logging.error(f"Abstract data: {abstract}")
-                logging.error(f"Model A data for this index: {model_a_df.loc[idx] if idx in model_a_df.index else 'Not found'}")
+                logging.error(f"Error preparing batch data for index {idx}: {str(e)}")
                 continue
         
         if not batch_data:
             logging.error("No valid batch data prepared for Model B")
-            logging.error("Original abstracts count: {len(abstracts)}")
-            logging.error("Model A results shape: {model_a_df.shape}")
             return []
-            
-        logging.debug(f"Prepared {len(batch_data)} items for Model B")
-        logging.debug(f"First batch item example: {batch_data[0] if batch_data else 'No items'}")
         
-        # 构建提示
+        # Build prompt
         prompt = self.prompt_manager.get_prompt("model_b").format(
             abstracts_json=json.dumps(batch_data, indent=2),
             **self.picos_criteria
         )
-        logging.debug(f"Generated prompt for Model B: {prompt}")
         
-        # 调用 API
+        # Call API
         try:
             response = self.model_manager.call_api("model_b", prompt)
-            logging.debug(f"Received Model B response: {response}")
             
-            # 验证响应
-            self.result_processor.validate_model_response(response, "model_b")
-            logging.debug(f"Validated Model B response: {response}")
+            # 检查响应格式
+            if not isinstance(response, dict):
+                logging.error(f"Invalid response type from Model B: {type(response)}")
+                raise Exception("Invalid Model B response format: response is not a dictionary")
             
-            return response["reviews"]
+            if "choices" not in response:
+                logging.error(f"Missing 'choices' in Model B response: {response}")
+                raise Exception("Invalid Model B response format: missing 'choices' field")
+            
+            if not isinstance(response["choices"], list) or not response["choices"]:
+                logging.error(f"Invalid 'choices' in Model B response: {response['choices']}")
+                raise Exception("Invalid Model B response format: empty or invalid choices")
+            
+            content = response["choices"][0].get("message", {}).get("content", "")
+            if not content:
+                logging.error("Empty content in Model B response")
+                raise Exception("Invalid Model B response format: empty content")
+            
+            # 检查是否包含 markdown 代码块
+            if "```json" in content:
+                pattern = r"```json\s*(.*?)\s*```"
+                match = re.search(pattern, content, re.DOTALL)
+                if match:
+                    content = match.group(1)
+            
+            try:
+                result = json.loads(content)
+                self.result_processor.validate_model_response(result, "model_b")
+                return result["reviews"]
+            except json.JSONDecodeError as e:
+                logging.error(f"Failed to parse Model B response content: {content}")
+                raise Exception(f"Failed to parse Model B response: {str(e)}")
+            
         except Exception as e:
             logging.error(f"Error calling Model B API: {str(e)}")
-            logging.error(f"Prompt used: {prompt}")
-            logging.error(f"Batch data count: {len(batch_data)}")
             raise
     
     def _call_model_c(self, abstracts: List[Dict], previous_results: Dict) -> List[Dict]:
@@ -393,26 +371,31 @@ class PICOSAnalyzer:
             a_result = previous_results["model_a"].loc[idx]
             b_result = previous_results["model_b"].loc[idx]
             
+            # 确保布尔值是 Python 原生类型
+            a_decision = bool(a_result["A_Decision"])
+            b_decision = bool(b_result["B_Decision"])
+            
+            # 使用与 prompt 中一致的字段名
             batch_data.append({
                 "Index": idx,
-                "abstract": abstract["abstract"],
+                "Abstract": abstract["abstract"],
                 "model_a_analysis": {
-                    "A_Decision": a_result["A_Decision"],
-                    "A_Reason": a_result["A_Reason"],
-                    "A_P": a_result["A_P"],
-                    "A_I": a_result["A_I"],
-                    "A_C": a_result["A_C"],
-                    "A_O": a_result["A_O"],
-                    "A_S": a_result["A_S"]
+                    "A_Decision": a_decision,
+                    "A_Reason": str(a_result["A_Reason"]),
+                    "A_P": str(a_result["A_P"]),
+                    "A_I": str(a_result["A_I"]),
+                    "A_C": str(a_result["A_C"]),
+                    "A_O": str(a_result["A_O"]),
+                    "A_S": str(a_result["A_S"])
                 },
                 "model_b_analysis": {
-                    "B_Decision": b_result["B_Decision"],
-                    "B_Reason": b_result["B_Reason"],
-                    "B_P": b_result["B_P"],
-                    "B_I": b_result["B_I"],
-                    "B_C": b_result["B_C"],
-                    "B_O": b_result["B_O"],
-                    "B_S": b_result["B_S"]
+                    "B_Decision": b_decision,
+                    "B_Reason": str(b_result["B_Reason"]),
+                    "B_P": str(b_result["B_P"]),
+                    "B_I": str(b_result["B_I"]),
+                    "B_C": str(b_result["B_C"]),
+                    "B_O": str(b_result["B_O"]),
+                    "B_S": str(b_result["B_S"])
                 }
             })
         
@@ -422,5 +405,41 @@ class PICOSAnalyzer:
         )
         
         response = self.model_manager.call_api("model_c", prompt)
-        self.result_processor.validate_model_response(response, "model_c")
-        return response["decisions"] 
+        
+        # 检查响应格式
+        if not isinstance(response, dict):
+            logging.error(f"Invalid response type from Model C: {type(response)}")
+            raise Exception("Invalid Model C response format: response is not a dictionary")
+        
+        if "choices" not in response:
+            logging.error(f"Missing 'choices' in Model C response: {response}")
+            raise Exception("Invalid Model C response format: missing 'choices' field")
+        
+        if not isinstance(response["choices"], list) or not response["choices"]:
+            logging.error(f"Invalid 'choices' in Model C response: {response['choices']}")
+            raise Exception("Invalid Model C response format: empty or invalid choices")
+        
+        content = response["choices"][0].get("message", {}).get("content", "")
+        if not content:
+            logging.error("Empty content in Model C response")
+            raise Exception("Invalid Model C response format: empty content")
+        
+        # 检查是否包含 markdown 代码块
+        if "```json" in content:
+            pattern = r"```json\s*(.*?)\s*```"
+            match = re.search(pattern, content, re.DOTALL)
+            if match:
+                content = match.group(1)
+        
+        logging.debug(f"Model C response content: {content}")
+        
+        try:
+            result = json.loads(content)
+            self.result_processor.validate_model_response(result, "model_c")
+            return result["decisions"]
+        except json.JSONDecodeError as e:
+            logging.error(f"Failed to parse Model C response content: {content}")
+            raise Exception(f"Failed to parse Model C response: {str(e)}")
+        except Exception as e:
+            logging.error(f"Error validating Model C response: {str(e)}")
+            raise 

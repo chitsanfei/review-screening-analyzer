@@ -51,7 +51,8 @@ If any field is not found in the abstract, use "not specified" as the value.
 Be strict in your evaluation and ensure the output is valid JSON format.""",
 
             "model_b": """You are a critical reviewer in a systematic review team.
-Your task is to critically review the initial PICOS analysis and provide your own assessment.
+Your task is to rigorously scrutinize Model A's analysis and provide your own assessment.
+You should actively look for potential flaws or oversights in Model A's analysis, while maintaining a high standard of evidence-based evaluation.
 
 Target PICOS criteria:
 - Population: {population}
@@ -67,15 +68,33 @@ Each article in the input contains:
 - Index: article identifier
 - abstract: original article abstract
 - model_a_analysis:
-  - A_P, A_I, A_C, A_O, A_S: extracted PICOS elements
-  - A_Decision: initial inclusion decision
-  - A_Reason: explanation for the decision
+  - A_P: Model A's population description
+  - A_I: Model A's intervention description
+  - A_C: Model A's comparison description
+  - A_O: Model A's outcome description
+  - A_S: Model A's study design description
+  - A_Decision: Model A's inclusion decision
+  - A_Reason: Model A's explanation
 
 Your task is to:
-1. Review the original abstract
-2. Critically assess Model A's PICOS extraction and decision
-3. Provide corrected PICOS elements if you disagree
-4. Make your own inclusion decision with reasoning
+1. Thoroughly examine the original abstract
+2. Critically review Model A's PICOS extraction, actively seeking potential issues:
+   - Look for missing details or nuances in population characteristics
+   - Check for precise intervention specifications
+   - Verify completeness of comparison group description
+   - Examine outcome measurements and their relevance
+   - Scrutinize study design classification
+3. Provide corrections with evidence from the abstract:
+   - B_P: Your corrected population description (use "-" only if A_P is completely accurate)
+   - B_I: Your corrected intervention description (use "-" only if A_I is completely accurate)
+   - B_C: Your corrected comparison description (use "-" only if A_C is completely accurate)
+   - B_O: Your corrected outcome description (use "-" only if A_O is completely accurate)
+   - B_S: Your corrected study design description (use "-" only if A_S is completely accurate)
+4. Make your own independent inclusion decision (B_Decision)
+5. Provide detailed reasoning (B_Reason) that:
+   - Points out any oversights or inaccuracies in Model A's analysis
+   - Cites specific evidence from the abstract
+   - Explains why your corrections or agreements are justified
 
 IMPORTANT: You must follow these strict JSON formatting rules:
 1. Use double quotes for all strings
@@ -84,8 +103,10 @@ IMPORTANT: You must follow these strict JSON formatting rules:
 4. Do not use trailing commas
 5. Keep the response concise and avoid unnecessary whitespace
 6. Escape any special characters in strings
-7. Use true/false for B_Decision
-8. Use "-" for unchanged PICOS elements
+7. Use true/false for B_Decision (true means the article should be included)
+8. ALL fields (B_P, B_I, B_C, B_O, B_S) must be provided for each review
+9. NEVER omit any field, even if you agree with Model A's analysis
+10. For B_S specifically, you must either provide a corrected study design description or use "-" if you agree with A_S
 
 Return your analysis in this exact JSON format:
 {{
@@ -93,19 +114,23 @@ Return your analysis in this exact JSON format:
     {{
       "Index": "ARTICLE_INDEX",
       "B_Decision": true/false,
-      "B_Reason": "brief critical analysis of Model A's decision",
-      "B_P": "-" or "brief corrected population",
-      "B_I": "-" or "brief corrected intervention",
-      "B_C": "-" or "brief corrected comparison",
-      "B_O": "-" or "brief corrected outcome",
-      "B_S": "-" or "brief corrected study design"
+      "B_Reason": "detailed reasoning with evidence from abstract",
+      "B_P": "-" or "corrected population description with evidence",
+      "B_I": "-" or "corrected intervention description with evidence",
+      "B_C": "-" or "corrected comparison description with evidence",
+      "B_O": "-" or "corrected outcome description with evidence",
+      "B_S": "-" or "corrected study design description with evidence"
     }},
     ...
   ]
 }}
 
-Keep all descriptions brief and focused. Do not include line breaks or special characters in the text fields.
-If you agree with Model A's PICOS extraction, use exactly "-" as the value.""",
+Keep descriptions focused and evidence-based. Do not include line breaks or special characters.
+Use "-" only when you are completely certain that Model A's extraction is accurate and complete.
+Your B_Decision should be based on whether the article meets all PICOS criteria.
+Remember to be thorough in your critique while maintaining objectivity and evidence-based reasoning.
+
+CRITICAL: You MUST include ALL fields in your response, especially B_S. If you agree with Model A's study design analysis, use "-" for B_S, but NEVER omit it.""",
 
             "model_c": """You are the final arbitrator in a systematic review process.
 Your task is to resolve disagreements between Model A and Model B's analyses.
@@ -146,7 +171,7 @@ IMPORTANT: You must follow these strict JSON formatting rules:
 4. Do not use trailing commas
 5. Keep the response concise and avoid unnecessary whitespace
 6. Escape any special characters in strings
-7. Use true/false for final_decision
+7. Use true/false for C_Decision
 
 Return your decisions in this EXACT JSON format (no other text allowed):
 {{

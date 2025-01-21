@@ -82,18 +82,18 @@ class FileProcessor:
     def load_csv(self, file_path: str) -> Optional[pd.DataFrame]:
         """Load CSV file and ensure correct index"""
         try:
-            # 首先尝试读取文件，保持索引列
+            # First try to read the file, keeping the index column
             df = pd.read_csv(file_path, index_col=0)
             
-            # 检查是否有 Index 列（可能在数据列中）
+            # Check if Index column exists (might be in data columns)
             if "Index" in df.columns:
-                # 如果 Index 在列中，将其设置为索引
+                # If Index is in columns, set it as index
                 df.set_index("Index", inplace=True)
             
-            # 确保索引名为 "Index"
+            # Ensure index name is "Index"
             df.index.name = "Index"
             
-            # 确保索引是字符串类型
+            # Ensure index is string type
             df.index = df.index.astype(str)
             
             logging.debug(f"Loaded DataFrame from {file_path}")

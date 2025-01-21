@@ -15,8 +15,8 @@ DATA_DIR = os.path.join(BASE_DIR, "data")
 LOG_DIR = os.path.join(BASE_DIR, "logs")
 
 # Initialize components
-file_processor = FileProcessor(DATA_DIR)
 analyzer = PICOSAnalyzer()
+file_processor = FileProcessor(DATA_DIR)
 model_results = {}
 
 # Ensure directories exist
@@ -43,12 +43,31 @@ except Exception as e:
 
 def create_gradio_interface():
     """Create Gradio interface"""
-    
     def parse_nbib(file) -> tuple:
         """Parse NBIB file and return results"""
-        if not file:
-            return None, "Invalid file"
-        return file_processor.parse_nbib(file.name)
+        try:
+            if not file:
+                return None, "No file uploaded"
+            
+            # Parse NBIB file
+            df = file_processor.parse_nbib(file.name)
+            if df is None:
+                return None, "Failed to parse NBIB file"
+            
+            # Save to CSV
+            output_path = file_processor.save_csv(df, "parsed_abstracts.csv")
+            if not output_path:
+                return None, "Failed to save CSV file"
+            
+            # Generate preview
+            preview = df.head().to_string()
+            
+            return output_path, preview
+            
+        except Exception as e:
+            error_msg = f"Error parsing NBIB file: {str(e)}"
+            logging.error(error_msg)
+            return None, error_msg
 
     def update_picos_criteria(p, i, c, o, s):
         """Update PICOS criteria"""
@@ -67,24 +86,26 @@ def create_gradio_interface():
     def update_model_settings(model_key, api_url, api_key, model_name, temperature, max_tokens, batch_size, threads, prompt):
         """Update model settings"""
         try:
-            config = {
-                "api_url": api_url,
-                "api_key": api_key,
-                "model": model_name,
+            analyzer.update_model_config(model_key, {
+                "api_url": api_url.strip(),
+                "api_key": api_key.strip(),
+                "model": model_name.strip(),
                 "temperature": float(temperature),
                 "max_tokens": int(max_tokens),
                 "batch_size": int(batch_size),
                 "threads": int(threads)
-            }
-            analyzer.update_model_config(model_key, config)
-            analyzer.update_prompt(model_key, prompt)
-            return f"✓ Model settings updated"
+            })
+            analyzer.update_prompt(model_key, prompt.strip())
+            return "✓ Settings updated successfully"
         except Exception as e:
             return f"❌ Error updating settings: {str(e)}"
     
     def test_connection(model_key):
         """Test API connection"""
-        return analyzer.test_api_connection(model_key)
+        try:
+            return analyzer.test_api_connection(model_key)
+        except Exception as e:
+            return f"❌ Error testing connection: {str(e)}"
     
     def process_model(input_file, model_key, model_a_input=None, model_b_input=None):
         """Process analysis for a single model"""
@@ -281,7 +302,7 @@ def create_gradio_interface():
     
     # Create Gradio interface
     interface = gr.Blocks(title="PICOS Analysis System")
-    
+
     with interface:
         gr.Markdown("# PICOS Literature Analysis System")
         gr.Markdown("This system uses a multi-model approach to analyze medical literature abstracts.")
@@ -435,6 +456,6 @@ def create_gradio_interface():
 if __name__ == "__main__":
     interface = create_gradio_interface()
     if interface:
-        interface.launch(server_name="0.0.0.0", server_port=7860)
+        interface.launch(server_name="0.0.0.0", server_port=7860) 
     else:
         print("Error: Failed to create Gradio interface") 

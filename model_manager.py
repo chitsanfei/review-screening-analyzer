@@ -22,7 +22,7 @@ class ModelManager:
             "model_b": {
                 "api_key": os.getenv("QWEN_API_KEY", ""),
                 "api_url": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
-                "model": "qwen-turbo",
+                "model": "qwen-plus-1127",
                 "name": "Model B (Critical Reviewer)",
                 "temperature": 0.3,
                 "max_tokens": 2000,
@@ -108,12 +108,6 @@ class ModelManager:
                     "max_tokens": config["max_tokens"]
                 }
                 
-                # Log request data
-                logging.info(f"Sending request to {config['name']}:")
-                logging.info(f"URL: {config['api_url']}")
-                logging.info(f"Headers: {headers}")
-                logging.info(f"Request Data: {json.dumps(data, indent=2)}")
-                
                 response = requests.post(
                     config["api_url"],
                     headers=headers,
@@ -121,32 +115,20 @@ class ModelManager:
                     timeout=config.get("timeout", 60)
                 )
                 
-                # Log response details
-                logging.info(f"Response Status: {response.status_code}")
-                logging.info(f"Response Headers: {dict(response.headers)}")
-                logging.info(f"Response Content: {response.text}")
-                
                 if response.status_code == 429:
                     retry_after = int(response.headers.get('Retry-After', retry_delay))
-                    logging.warning(f"Rate limited by {config['name']}, waiting {retry_after} seconds")
                     time.sleep(retry_after)
                     continue
                 
                 response.raise_for_status()
                 
-                # Try to parse JSON response
                 try:
-                    json_response = response.json()
-                    logging.info(f"Parsed JSON Response: {json.dumps(json_response, indent=2)}")
-                    return json_response
+                    return response.json()
                 except json.JSONDecodeError as e:
-                    logging.error(f"Failed to parse JSON response: {str(e)}")
-                    logging.error(f"Raw response content: {response.text}")
-                    raise
+                    raise Exception(f"Failed to parse JSON response: {str(e)}")
                 
             except Exception as e:
                 if attempt < max_retries - 1:
-                    logging.warning(f"API call failed for {config['name']}: {str(e)}, retrying...")
                     time.sleep(retry_delay)
                     continue
                 raise Exception(f"API call failed for {config['name']}: {str(e)}")

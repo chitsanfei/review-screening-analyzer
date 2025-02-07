@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import logging
+import re
 from typing import Tuple, Optional
 
 class FileProcessor:
@@ -63,21 +64,101 @@ class FileProcessor:
             df.to_csv(output_path)
 
             # Prepare preview data
-            preview = ""
-            for i, record in enumerate(records[:3], 0):
-                preview += f"\nRecord {i}:\n"
-                preview += f"DOI: {record.get('DOI', '')[:50]}\n"
-                preview += f"Title: {record.get('Title', '')[:100]}...\n"
-                preview += f"Authors: {record.get('Authors', '')[:100]}...\n"
-                preview += f"Abstract: {record.get('Abstract', '')[:200]}...\n"
-                preview += "-" * 80 + "\n"
-            
-            preview += f"\nTotal records extracted: {len(records)}"
+            preview = self._generate_preview(records)
             
             return output_path, preview
             
         except Exception as e:
             return None, f"Error processing NBIB file: {str(e)}"
+
+    def parse_ris(self, file_path: str) -> Tuple[Optional[str], str]:
+        """Parse Web of Science RIS file and return results"""
+        if not file_path or not os.path.exists(file_path):
+            return None, "Invalid file"
+            
+        try:
+            records = []
+            record = {}
+            authors = []
+            current_field = None
+
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            if not content:
+                return None, "Empty file"
+
+            # 按文章分割
+            articles = content.split("\nER  -")
+            
+            for article in articles:
+                if not article.strip():
+                    continue
+                    
+                record = {}
+                authors = []
+                
+                # 分行处理
+                lines = article.strip().split('\n')
+                for line in lines:
+                    if not line.strip():
+                        continue
+                        
+                    if line.startswith('TI  - '):
+                        record['Title'] = line.replace('TI  - ', '').strip()
+                    elif line.startswith('AB  - '):
+                        record['Abstract'] = line.replace('AB  - ', '').strip()
+                    elif line.startswith('AU  - '):
+                        authors.append(line.replace('AU  - ', '').strip())
+                    elif line.startswith('DO  - '):
+                        record['DOI'] = line.replace('DO  - ', '').strip()
+                    elif line.startswith('   '):  # 处理多行字段
+                        if 'Abstract' in record:
+                            record['Abstract'] += ' ' + line.strip()
+                        elif 'Title' in record:
+                            record['Title'] += ' ' + line.strip()
+
+                if record:
+                    record['Authors'] = '; '.join(authors)
+                    records.append(record)
+
+            # 创建DataFrame
+            df = pd.DataFrame(records)
+            
+            # 确保所有必需的列都存在
+            required_columns = ['Title', 'Abstract', 'Authors', 'DOI']
+            for col in required_columns:
+                if col not in df.columns:
+                    df[col] = ''
+                    
+            # 添加索引
+            df.index.name = 'Index'
+            
+            # 保存到CSV
+            output_path = os.path.join(self.data_dir, "extracted_data.csv")
+            df.to_csv(output_path)
+
+            # 生成预览
+            preview = self._generate_preview(records)
+            
+            return output_path, preview
+            
+        except Exception as e:
+            return None, f"Error processing RIS file: {str(e)}"
+            
+    def _generate_preview(self, records: list) -> str:
+        """Generate preview of the parsed records"""
+        preview = ""
+        for i, record in enumerate(records[:3], 0):
+            preview += f"\nRecord {i}:\n"
+            preview += f"DOI: {record.get('DOI', '')[:50]}\n"
+            preview += f"Title: {record.get('Title', '')[:100]}...\n"
+            preview += f"Authors: {record.get('Authors', '')[:100]}...\n"
+            preview += f"Abstract: {record.get('Abstract', '')[:200]}...\n"
+            preview += "-" * 80 + "\n"
+        
+        preview += f"\nTotal records extracted: {len(records)}"
+        return preview
             
     def load_csv(self, file_path: str) -> Optional[pd.DataFrame]:
         """Load CSV file and ensure correct index"""

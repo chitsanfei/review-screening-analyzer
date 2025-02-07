@@ -3,43 +3,47 @@ import json
 import requests
 import logging
 import time
+import re
 from typing import Dict, Any
 
 class ModelManager:
     def __init__(self):
         self.model_configs = {
             "model_a": {
-                "api_key": os.getenv("DEEPSEEK_API_KEY", ""),
-                "api_url": "https://api.deepseek.com/v1/chat/completions",
-                "model": "deepseek-chat",
+                "api_key": os.getenv("MODEL_A_API_KEY", ""),
+                "api_url": os.getenv("MODEL_A_API_URL", ""),
+                "model": os.getenv("MODEL_A_MODEL_NAME", ""),
                 "name": "Model A (Primary Analyzer)",
                 "temperature": 0.3,
                 "max_tokens": 2000,
                 "batch_size": 10,
                 "threads": 8,
-                "timeout": 60
+                "timeout": 60,
+                "is_inference": False
             },
             "model_b": {
-                "api_key": os.getenv("QWEN_API_KEY", ""),
-                "api_url": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
-                "model": "qwen-plus-1127",
+                "api_key": os.getenv("MODEL_B_API_KEY", ""),
+                "api_url": os.getenv("MODEL_B_API_URL", ""),
+                "model": os.getenv("MODEL_B_MODEL_NAME", ""),
                 "name": "Model B (Critical Reviewer)",
                 "temperature": 0.3,
                 "max_tokens": 2000,
                 "batch_size": 10,
                 "threads": 8,
-                "timeout": 60
+                "timeout": 60,
+                "is_inference": False
             },
             "model_c": {
-                "api_key": os.getenv("GPTGE_API_KEY", ""),
-                "api_url": "https://api.gpt.ge/v1/chat/completions",
-                "model": "gpt-4o",
+                "api_key": os.getenv("MODEL_C_API_KEY", ""),
+                "api_url": os.getenv("MODEL_C_API_URL", ""),
+                "model": os.getenv("MODEL_C_MODEL_NAME", ""),
                 "name": "Model C (Final Arbitrator)",
                 "temperature": 0.3,
                 "max_tokens": 2000,
                 "batch_size": 10,
                 "threads": 8,
-                "timeout": 60
+                "timeout": 60,
+                "is_inference": False
             }
         }
         
@@ -53,6 +57,24 @@ class ModelManager:
         if model_key not in self.model_configs:
             raise ValueError(f"Invalid model key: {model_key}")
         self.model_configs[model_key].update(config)
+    
+    def process_inference_response(self, response: str) -> str:
+        """Process response from inference model by removing think tags and HTML content"""
+        try:
+            # Remove <think> blocks
+            response = re.sub(r'<think>.*?</think>', '', response, flags=re.DOTALL)
+            
+            # Remove HTML tags
+            response = re.sub(r'<[^>]+>', '', response)
+            
+            # Clean up extra whitespace
+            response = re.sub(r'\n\s*\n', '\n\n', response.strip())
+            
+            return response
+            
+        except Exception as e:
+            logging.error(f"Error processing inference response: {str(e)}")
+            return response
     
     def test_api_connection(self, model_key: str) -> str:
         """Test API connection"""
@@ -123,7 +145,18 @@ class ModelManager:
                 response.raise_for_status()
                 
                 try:
-                    return response.json()
+                    result = response.json()
+                    
+                    # Process response if it's an inference model
+                    if config.get("is_inference", False) and "choices" in result:
+                        for choice in result["choices"]:
+                            if "message" in choice and "content" in choice["message"]:
+                                choice["message"]["content"] = self.process_inference_response(
+                                    choice["message"]["content"]
+                                )
+                    
+                    return result
+                    
                 except json.JSONDecodeError as e:
                     raise Exception(f"Failed to parse JSON response: {str(e)}")
                 

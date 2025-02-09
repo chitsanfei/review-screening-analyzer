@@ -13,12 +13,19 @@ class PICOSAnalyzer:
         self.model_manager = ModelManager()
         self.prompt_manager = PromptManager()
         self.result_processor = ResultProcessor()
+        # self.picos_criteria = {
+        #     "population": "patients with hepatocellular carcinoma",
+        #     "intervention": "immune checkpoint inhibitors (ICIs)",
+        #     "comparison": "treatment without the studied ICIs or placebo",
+        #     "outcome": "survival rate or response rate",
+        #     "study_design": "randomized controlled trial"
+        # }
         self.picos_criteria = {
-            "population": "patients with hepatocellular carcinoma",
-            "intervention": "immune checkpoint inhibitors (ICIs)",
-            "comparison": "treatment without the studied ICIs or placebo",
-            "outcome": "survival rate or response rate",
-            "study_design": "randomized controlled trial"
+            "population": "patients with non-alcoholic fatty liver disease (NAFLD)",
+            "intervention": "observation or management of NAFLD",
+            "comparison": "patients without NAFLD or general population",
+            "outcome": "incidence of various types of extra-hepatic cancers, such as colorectal cancer, stomach cancer, breast cancer, etc.",
+            "study_design": "retrospective cohort studies"
         }
     
     def update_picos_criteria(self, criteria: Dict[str, str]) -> None:
@@ -37,7 +44,7 @@ class PICOSAnalyzer:
         """Test API connection"""
         return self.model_manager.test_api_connection(model_key)
     
-    def process_batch(self, df: pd.DataFrame, model_key: str, previous_results: Dict = None) -> pd.DataFrame:
+    def process_batch(self, df: pd.DataFrame, model_key: str, previous_results: Dict = None, progress_callback = None) -> pd.DataFrame:
         """Process a batch of data"""
         config = self.model_manager.get_config(model_key)
         batch_size = config["batch_size"]
@@ -48,17 +55,8 @@ class PICOSAnalyzer:
         error_count = 0
         failed_indices = set()
         
-        def update_progress():
-            progress = (completed_rows / total_rows) * 100
-            status_text = (f"Processing {model_key.upper()}: {completed_rows}/{total_rows} rows ({progress:.1f}%) "
-                         f"- Errors: {error_count}")
-            if hasattr(update_progress, 'last_status') and update_progress.last_status == status_text:
-                return
-            update_progress.last_status = status_text
-            logging.info(status_text)
-        
         def process_batch_data(batch_df: pd.DataFrame) -> List[Dict]:
-            nonlocal error_count, failed_indices
+            nonlocal completed_rows, error_count, failed_indices
             batch_results = []
             empty_results = []
             
@@ -69,6 +67,8 @@ class PICOSAnalyzer:
                         logging.warning(f"Row {idx}: Abstract too short or empty")
                         empty_result = self._create_empty_result(idx, model_key)
                         empty_results.append(empty_result)
+                        if progress_callback:
+                            progress_callback(idx, True)
                         continue
                     
                     abstract = {
@@ -79,19 +79,27 @@ class PICOSAnalyzer:
                     if model_key in ["model_b", "model_c"] and previous_results:
                         if not self._validate_previous_results(idx, model_key, previous_results):
                             failed_indices.add(idx)
+                            if progress_callback:
+                                progress_callback(idx, True)
                             continue
                         
                         if model_key == "model_c":
                             if not self._check_disagreement(idx, previous_results):
                                 empty_results.append(self._create_no_disagreement_result(idx, previous_results))
+                                if progress_callback:
+                                    progress_callback(idx, False)
                                 continue
                     
                     batch_results.append(abstract)
-                    
+                    if progress_callback:
+                        progress_callback(idx, False)
+                
                 except Exception as e:
                     logging.error(f"Error processing row {idx}: {str(e)}")
                     error_count += 1
                     failed_indices.add(idx)
+                    if progress_callback:
+                        progress_callback(idx, True)
             
             try:
                 api_results = []
@@ -138,7 +146,6 @@ class PICOSAnalyzer:
                     logging.error(f"Error processing batch: {str(e)}")
                 finally:
                     completed_rows += len(batch_indices)
-                    update_progress()
         
         if not results:
             raise Exception("No results were successfully processed")

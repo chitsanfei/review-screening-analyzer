@@ -10,37 +10,6 @@ from deduplicator import Deduplicator
 # Load environment variables
 load_dotenv()
 
-# Load model configurations from environment variables
-MODEL_CONFIGS = {
-    "model_a": {
-        "api_url": os.getenv("MODEL_A_API_URL", ""),
-        "api_key": os.getenv("MODEL_A_API_KEY", ""),
-        "model": os.getenv("MODEL_A_MODEL_NAME", ""),
-        "temperature": 0.7,
-        "max_tokens": 1024,
-        "batch_size": 5,
-        "threads": 4
-    },
-    "model_b": {
-        "api_url": os.getenv("MODEL_B_API_URL", ""),
-        "api_key": os.getenv("MODEL_B_API_KEY", ""),
-        "model": os.getenv("MODEL_B_MODEL_NAME", ""),
-        "temperature": 0.7,
-        "max_tokens": 1024,
-        "batch_size": 5,
-        "threads": 4
-    },
-    "model_c": {
-        "api_url": os.getenv("MODEL_C_API_URL", ""),
-        "api_key": os.getenv("MODEL_C_API_KEY", ""),
-        "model": os.getenv("MODEL_C_MODEL_NAME", ""),
-        "temperature": 0.7,
-        "max_tokens": 1024,
-        "batch_size": 5,
-        "threads": 4
-    }
-}
-
 # Configuration
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
@@ -51,10 +20,6 @@ analyzer = PICOSAnalyzer()
 file_processor = FileProcessor(DATA_DIR)
 model_results = {}
 deduplicator = Deduplicator()
-
-# Initialize model configurations
-for model_key, config in MODEL_CONFIGS.items():
-    analyzer.update_model_config(model_key, config)
 
 # Ensure directories exist
 for directory in [DATA_DIR, LOG_DIR]:
@@ -81,7 +46,7 @@ except Exception as e:
 def create_gradio_interface():
     """Create Gradio interface"""
     def parse_nbib(file) -> tuple:
-        """Parse NBIB or RIS file and return results"""
+        """Parse citation file and return results"""
         try:
             if not file:
                 return None, "No file uploaded"
@@ -93,8 +58,13 @@ def create_gradio_interface():
                 # Parse NBIB file
                 output_path, preview = file_processor.parse_nbib(file.name)
             elif file_extension == '.ris':
-                # Parse RIS file
-                output_path, preview = file_processor.parse_ris(file.name)
+                # Check if it's Embase RIS or WoS RIS based on content
+                with open(file.name, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                if 'T1  - ' in content:  # Embase RIS format
+                    output_path, preview = file_processor.parse_embase_ris(file.name)
+                else:  # WoS RIS format
+                    output_path, preview = file_processor.parse_ris(file.name)
             else:
                 return None, "Unsupported file format. Please upload a .nbib or .ris file"
             
@@ -122,7 +92,7 @@ def create_gradio_interface():
         except Exception as e:
             return f"❌ Error updating PICOS criteria: {str(e)}"
     
-    def update_model_settings(model_key, api_url, api_key, model_name, temperature, max_tokens, batch_size, threads, prompt, is_inference):
+    def update_model_settings(model_key, api_url, api_key, model_name, temperature, max_tokens, batch_size, threads, prompt, is_inference, timeout):
         """Update model settings"""
         try:
             analyzer.update_model_config(model_key, {
@@ -133,7 +103,8 @@ def create_gradio_interface():
                 "max_tokens": int(max_tokens),
                 "batch_size": int(batch_size),
                 "threads": int(threads),
-                "is_inference": bool(is_inference)
+                "is_inference": bool(is_inference),
+                "timeout": float(timeout)
             })
             analyzer.update_prompt(model_key, prompt.strip())
             return "✓ Settings updated successfully"
@@ -141,32 +112,9 @@ def create_gradio_interface():
             return f"❌ Error updating settings: {str(e)}"
     
     def test_connection(model_key):
-        """Test API connection with debug output"""
+        """Test API connection"""
         try:
             result = analyzer.test_api_connection(model_key)
-            
-            # Debug: Test inference model response processing
-            if analyzer.model_manager.get_config(model_key).get("is_inference", False):
-                test_response = """
-<think>
-这是一个测试思考过程。
-分析步骤如下：
-1. 首先检查连接
-2. 然后验证参数
-</think>
-
-这是实际的响应内容。
-测试连接成功。
-
-<html>
-<body>
-这些HTML标签应该被移除
-</body>
-</html>
-"""
-                processed_response = analyzer.model_manager.process_inference_response(test_response)
-                return f"{result}\n\nDebug - Raw Response:\n{test_response}\n\nProcessed Response:\n{processed_response}"
-            
             return result
         except Exception as e:
             return f"❌ Error testing connection: {str(e)}"
@@ -175,16 +123,19 @@ def create_gradio_interface():
         """Process analysis for a single model"""
         try:
             # Read CSV file using file processor
+            logging.info(f"Loading input file for {model_key.upper()}...")
             df = file_processor.load_csv(input_file.name)
             if df is None:
                 return None, "Failed to load CSV file"
             
             # Check and load previous model results
             if model_key == "model_b":
+                logging.info("Loading Model A results for Model B analysis...")
                 if model_a_input is None or not os.path.exists(model_a_input.name):
                     return None, "Model A results file required for MODEL_B"
                 model_results["model_a"] = file_processor.load_csv(model_a_input.name)
             elif model_key == "model_c":
+                logging.info("Loading Model A and B results for Model C analysis...")
                 if model_a_input is None or not os.path.exists(model_a_input.name) or \
                    model_b_input is None or not os.path.exists(model_b_input.name):
                     return None, "Both Model A and B results files required for MODEL_C"
@@ -192,16 +143,42 @@ def create_gradio_interface():
                 model_results["model_b"] = file_processor.load_csv(model_b_input.name)
             
             # Start processing
-            logging.info(f"Init Model: {model_key.upper()}...")
-            results_df = analyzer.process_batch(df, model_key, model_results)
+            logging.info(f"Starting {model_key.upper()} analysis...")
+            total_rows = len(df)
+            processed_rows = 0
+            errors = 0
+            
+            # 获取当前模型的批次大小
+            batch_size = analyzer.model_manager.get_config(model_key).get("batch_size", 10)
+            
+            def progress_callback(row_index, error=False):
+                nonlocal processed_rows, errors
+                processed_rows += 1
+                if error:
+                    errors += 1
+                # 根据批次大小或处理完成时显示进度
+                if processed_rows % batch_size == 0 or processed_rows == total_rows:
+                    progress = (processed_rows / total_rows) * 100
+                    logging.info(f"Processing {model_key.upper()}: {processed_rows}/{total_rows} rows ({progress:.1f}%) - Errors: {errors}")
+            
+            # 根据是否有 model_results 来调用 process_batch
+            if model_results:
+                results_df = analyzer.process_batch(df, model_key, model_results, progress_callback)
+            else:
+                results_df = analyzer.process_batch(df, model_key, None, progress_callback)
+            
+            if results_df is None:
+                return None, f"{model_key.upper()} failed to process results"
+            
             model_results[model_key] = results_df
             
             # Save results
+            logging.info(f"Saving {model_key.upper()} results...")
             output_path = file_processor.save_csv(results_df, f"{model_key}_results.csv")
             if not output_path:
                 return None, f"Failed to save {model_key.upper()} results"
             
-            completion_msg = f"{model_key.upper()} analysis completed: processed {len(df)} rows"
+            completion_msg = f"{model_key.upper()} analysis completed: processed {total_rows} rows"
             logging.info(completion_msg)
             return output_path, completion_msg
         except Exception as e:
@@ -268,6 +245,9 @@ def create_gradio_interface():
             
             # Run Model A
             logging.info("Starting Model A analysis...")
+            status = update_progress("Model A", "Processing...")
+            yield model_a_path, model_b_path, model_c_path, final_path, status
+            
             model_a_results = analyzer.process_batch(df, "model_a")
             if model_a_results is None:
                 yield model_a_path, model_b_path, model_c_path, final_path, "Model A failed to process results"
@@ -280,12 +260,14 @@ def create_gradio_interface():
                 return
                 
             model_results["model_a"] = model_a_results
-            
             status = update_progress("Model A", "Completed")
             yield model_a_path, model_b_path, model_c_path, final_path, status
             
             # Run Model B
             logging.info("Starting Model B analysis...")
+            status = update_progress("Model B", "Processing...")
+            yield model_a_path, model_b_path, model_c_path, final_path, status
+            
             model_b_results = analyzer.process_batch(df, "model_b", {"model_a": model_a_results})
             if model_b_results is None:
                 yield model_a_path, model_b_path, model_c_path, final_path, "Model B failed to process results"
@@ -298,12 +280,14 @@ def create_gradio_interface():
                 return
                 
             model_results["model_b"] = model_b_results
-            
             status = update_progress("Model B", "Completed")
             yield model_a_path, model_b_path, model_c_path, final_path, status
             
             # Run Model C
             logging.info("Starting Model C analysis...")
+            status = update_progress("Model C", "Processing...")
+            yield model_a_path, model_b_path, model_c_path, final_path, status
+            
             model_c_results = analyzer.process_batch(df, "model_c", {
                 "model_a": model_a_results,
                 "model_b": model_b_results
@@ -323,6 +307,9 @@ def create_gradio_interface():
             
             # Merge results
             logging.info("Merging results...")
+            status = update_progress("Merge", "Processing...")
+            yield model_a_path, model_b_path, model_c_path, final_path, status
+            
             merged_df = analyzer.merge_results(df, model_results)
             
             # Save final results
@@ -330,8 +317,6 @@ def create_gradio_interface():
             if not final_path:
                 yield model_a_path, model_b_path, model_c_path, None, "Failed to save final results"
                 return
-            
-            status = update_progress("Merge", "Completed")
             
             completion_msg = f"All models completed successfully - Processed {len(df)} rows"
             logging.info(completion_msg)
@@ -386,8 +371,72 @@ def create_gradio_interface():
     interface = gr.Blocks(title="PICOS Analysis System")
 
     with interface:
-        gr.Markdown("# PICOS Literature Analysis System")
-        gr.Markdown("This system uses a multi-model approach to analyze medical literature abstracts.")
+        gr.Markdown("""
+        <div style="text-align: center;">
+            <h1>PICOS Literature Analysis System</h1>
+            <p>This system uses a multi-model approach to analyze medical literature abstracts.</p>
+        </div>
+        """)
+        
+        with gr.Tab("Instructions"):
+            gr.Markdown("""
+            ## System Overview
+            This system helps researchers analyze medical literature by providing tools for citation management, 
+            deduplication, and automated PICOS analysis using multiple language models.
+
+            ## Workflow Steps
+            1. **Citation Processing**
+               - Import citations from different databases:
+                 - Pubmed (.nbib files)
+                 - Embase (.ris files)
+                 - Web of Science (.ris files)
+               - Each source will be converted to a standardized CSV format
+
+            2. **Deduplication** (Optional)
+               - Upload multiple CSV files from different sources
+               - Adjust similarity threshold to control deduplication strictness
+               - Get both deduplicated dataset and duplicate clusters report
+
+            3. **PICOS Analysis Setup**
+               - Configure PICOS criteria for your specific research question
+               - Set up model parameters for each analysis stage:
+                 - Model A: Initial screening
+                 - Model B: Detailed review
+                 - Model C: Arbitration for disagreements
+               - Test API connections before proceeding
+
+            4. **Analysis Execution**
+               - Upload your processed citation file
+               - Run models individually or use the "Run All" option
+               - Review and merge results
+
+            ## File Format Requirements
+            ### Input Files
+            - **Pubmed**: NBIB format (.nbib)
+            - **Embase**: RIS format (.ris)
+            - **Web of Science**: RIS format (.ris)
+
+            ### Processed CSV Format
+            The system will generate standardized CSV files with these columns:
+            - **Index**: Unique identifier for each abstract
+            - **Title**: Article title
+            - **Authors**: Author list (semicolon-separated)
+            - **Abstract**: Full abstract text
+            - **DOI**: Digital Object Identifier (when available)
+
+            ### Analysis Results
+            Each model will generate a CSV file containing:
+            - All original citation data
+            - PICOS analysis results
+            - Inclusion/exclusion decisions
+            - Reasoning for decisions
+
+            ## Tips
+            - Always test API connections before running full analysis
+            - Use deduplication when combining data from multiple sources
+            - Consider using Model C only when Models A and B disagree
+            - Regular model settings work well for most cases, but you can enable inference mode for models that provide reasoning steps
+            """)
         
         with gr.Tab("Citation File Processing"):
             with gr.Tab("Pubmed"):
@@ -412,6 +461,30 @@ def create_gradio_interface():
                     parse_nbib,
                     inputs=[nbib_file],
                     outputs=[nbib_output, nbib_preview]
+                )
+            
+            with gr.Tab("Embase"):
+                gr.Markdown("""
+                ## Embase RIS Processing
+                Upload a .ris file from Embase to extract and convert it to CSV format. The extracted data will include:
+                - DOI
+                - Title
+                - Authors
+                - Abstract
+                """)
+                
+                with gr.Row():
+                    embase_file = gr.File(label="Upload Embase RIS File", file_types=[".ris"])
+                    process_embase_btn = gr.Button("Process Embase RIS File")
+                
+                with gr.Row():
+                    embase_preview = gr.Textbox(label="Preview", lines=20)
+                    embase_output = gr.File(label="Download CSV")
+                
+                process_embase_btn.click(
+                    parse_nbib,  # 使用相同的处理函数，它会自动检测RIS文件类型
+                    inputs=[embase_file],
+                    outputs=[embase_output, embase_preview]
                 )
             
             with gr.Tab("Web of Science"):
@@ -523,15 +596,16 @@ def create_gradio_interface():
                             value=config.get("is_inference", False),
                             info="Enable inference compatibility mode for models that return reasoning process"
                         )
-                        temperature = gr.Slider(label="Temperature", minimum=0, maximum=1, value=config["temperature"])
+                        temperature = gr.Slider(label="Temperature", minimum=0, maximum=10, value=config["temperature"])
                         max_tokens = gr.Number(label="Max Tokens", value=config["max_tokens"])
                         batch_size = gr.Number(label="Batch Size", value=config["batch_size"])
                         threads = gr.Slider(label="Threads", minimum=1, maximum=32, step=1, value=config["threads"])
+                        timeout = gr.Number(label="Timeout (seconds)", value=config.get("timeout", 180))
                         prompt = gr.Textbox(label="Prompt Template", value=analyzer.prompt_manager.get_prompt(model_key), lines=10)
                         
                         update_btn = gr.Button(f"Update {model_key.upper().replace('_', ' ')} Settings")
                         test_btn = gr.Button(f"Test {model_key.upper().replace('_', ' ')} Connection")
-                        status = gr.Textbox(label="Status", lines=10)  # Increased lines for debug output
+                        status = gr.Textbox(label="Status", lines=10)
                         
                         update_btn.click(
                             update_model_settings,
@@ -545,7 +619,8 @@ def create_gradio_interface():
                                 batch_size,
                                 threads,
                                 prompt,
-                                is_inference
+                                is_inference,
+                                timeout
                             ],
                             outputs=status
                         )
@@ -602,21 +677,6 @@ def create_gradio_interface():
                     inputs=[input_file],
                     outputs=[model_a_output, model_b_output, model_c_output, final_output, status]
                 )
-        
-        gr.Markdown("""
-        ## Instructions
-        1. Start by processing your citation file in the "Citation File Processing" tab
-        2. Configure PICOS criteria and model settings in the "LLM Analysis" tab
-        3. Test API connections before running analysis
-        4. Upload the generated CSV file in the "Analysis" tab
-        5. Run models in sequence: A -> B -> C
-        6. Merge results to get the final analysis
-        
-        ## Input File Format
-        The input CSV file should contain at least the following columns:
-        - Index: Unique identifier for each abstract
-        - Abstract: The text content to be analyzed
-        """)
     
     return interface
 

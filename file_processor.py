@@ -145,7 +145,82 @@ class FileProcessor:
             
         except Exception as e:
             return None, f"Error processing RIS file: {str(e)}"
+
+    def parse_embase_ris(self, file_path: str) -> Tuple[Optional[str], str]:
+        """Parse Embase RIS file and return results"""
+        if not file_path or not os.path.exists(file_path):
+            return None, "Invalid file"
             
+        try:
+            records = []
+            record = {}
+            authors = []
+            current_field = None
+
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            if not content:
+                return None, "Empty file"
+
+            # Split by articles
+            articles = content.split("\n\n")
+            
+            for article in articles:
+                if not article.strip():
+                    continue
+                    
+                record = {}
+                authors = []
+                
+                # Process each line
+                lines = article.strip().split('\n')
+                for line in lines:
+                    if not line.strip():
+                        continue
+                        
+                    if line.startswith('T1  - '):  # Title
+                        record['Title'] = line.replace('T1  - ', '').strip()
+                    elif line.startswith('N2  - '):  # Abstract
+                        record['Abstract'] = line.replace('N2  - ', '').strip()
+                    elif line.startswith('A1  - '):  # Authors
+                        authors.append(line.replace('A1  - ', '').strip())
+                    elif line.startswith('DO  - '):  # DOI
+                        record['DOI'] = line.replace('DO  - ', '').strip()
+                    elif line.startswith('   '):  # Handle multi-line fields
+                        if 'Abstract' in record:
+                            record['Abstract'] += ' ' + line.strip()
+                        elif 'Title' in record:
+                            record['Title'] += ' ' + line.strip()
+
+                if record:
+                    record['Authors'] = '; '.join(authors) if authors else ''
+                    records.append(record)
+
+            # Create DataFrame
+            df = pd.DataFrame(records)
+            
+            # Ensure all required columns exist
+            required_columns = ['Title', 'Abstract', 'Authors', 'DOI']
+            for col in required_columns:
+                if col not in df.columns:
+                    df[col] = ''
+                    
+            # Add index
+            df.index.name = 'Index'
+            
+            # Save to CSV
+            output_path = os.path.join(self.data_dir, "extracted_data.csv")
+            df.to_csv(output_path)
+
+            # Generate preview
+            preview = self._generate_preview(records)
+            
+            return output_path, preview
+            
+        except Exception as e:
+            return None, f"Error processing Embase RIS file: {str(e)}"
+
     def _generate_preview(self, records: list) -> str:
         """Generate preview of the parsed records"""
         preview = ""

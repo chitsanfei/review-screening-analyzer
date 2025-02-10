@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from file_processor import FileProcessor
 from analyzer import PICOSAnalyzer
 from deduplicator import Deduplicator
+from result_processor import ResultProcessor  # 新增：导入 ResultProcessor
 
 # Load environment variables
 load_dotenv()
@@ -20,6 +21,7 @@ analyzer = PICOSAnalyzer()
 file_processor = FileProcessor(DATA_DIR)
 model_results = {}
 deduplicator = Deduplicator()
+result_processor = ResultProcessor()  # 实例化结果处理器
 
 # Ensure directories exist
 for directory in [DATA_DIR, LOG_DIR]:
@@ -172,7 +174,7 @@ def create_gradio_interface():
             
             model_results[model_key] = results_df
             
-            # Save results
+            # Save model-specific results as CSV (保留其它中间结果为 CSV)
             logging.info(f"Saving {model_key.upper()} results...")
             output_path = file_processor.save_csv(results_df, f"{model_key}_results.csv")
             if not output_path:
@@ -187,7 +189,7 @@ def create_gradio_interface():
             return None, error_msg
     
     def merge_results_with_files(input_file, model_a_file, model_b_file, model_c_file):
-        """Merge all model results from files"""
+        """Merge all model results from files and export as XLSX"""
         if not all([input_file, model_a_file, model_b_file]):
             return None, "Original file, Model A and B results are required"
         
@@ -210,12 +212,11 @@ def create_gradio_interface():
             # Merge results
             merged_df = analyzer.merge_results(df, model_results)
             
-            # Save results
-            output_path = file_processor.save_csv(merged_df, "final_results.csv")
-            if not output_path:
-                return None, "Failed to save merged results"
-                
-            return output_path, "Results merged successfully"
+            # Export merged results as XLSX instead of CSV
+            final_filename = "final_results.xlsx"
+            result_processor.export_to_excel(merged_df, final_filename)
+            
+            return final_filename, "Results merged successfully"
         except Exception as e:
             return None, f"Error merging results: {str(e)}"
     
@@ -253,7 +254,7 @@ def create_gradio_interface():
                 yield model_a_path, model_b_path, model_c_path, final_path, "Model A failed to process results"
                 return
                 
-            # Save Model A results
+            # Save Model A results as CSV
             model_a_path = file_processor.save_csv(model_a_results, "model_a_results.csv")
             if not model_a_path:
                 yield None, None, None, None, "Failed to save Model A results"
@@ -273,7 +274,7 @@ def create_gradio_interface():
                 yield model_a_path, model_b_path, model_c_path, final_path, "Model B failed to process results"
                 return
                 
-            # Save Model B results
+            # Save Model B results as CSV
             model_b_path = file_processor.save_csv(model_b_results, "model_b_results.csv")
             if not model_b_path:
                 yield model_a_path, None, None, None, "Failed to save Model B results"
@@ -294,7 +295,7 @@ def create_gradio_interface():
             })
             
             if model_c_results is not None:
-                # Save Model C results
+                # Save Model C results as CSV
                 model_c_path = file_processor.save_csv(model_c_results, "model_c_results.csv")
                 if not model_c_path:
                     yield model_a_path, model_b_path, None, None, "Failed to save Model C results"
@@ -312,11 +313,10 @@ def create_gradio_interface():
             
             merged_df = analyzer.merge_results(df, model_results)
             
-            # Save final results
-            final_path = file_processor.save_csv(merged_df, "final_results.csv")
-            if not final_path:
-                yield model_a_path, model_b_path, model_c_path, None, "Failed to save final results"
-                return
+            # Export final merged results as XLSX
+            final_filename = "final_results.xlsx"
+            result_processor.export_to_excel(merged_df, final_filename)
+            final_path = final_filename
             
             completion_msg = f"All models completed successfully - Processed {len(df)} rows"
             logging.info(completion_msg)
@@ -348,7 +348,7 @@ def create_gradio_interface():
             # Process deduplication
             unique_df, clusters_df = deduplicator.process_dataframes(dataframes, threshold)
             
-            # Save results
+            # Save deduplication results as CSV (此处未改为 XLSX，可根据需要修改)
             unique_path = file_processor.save_csv(unique_df, "deduplicated_data.csv")
             clusters_path = file_processor.save_csv(clusters_df, "duplicate_clusters.csv")
             
@@ -650,7 +650,7 @@ def create_gradio_interface():
                     model_a_output = gr.File(label="Model A Results")
                     model_b_output = gr.File(label="Model B Results")
                     model_c_output = gr.File(label="Model C Results")
-                    final_output = gr.File(label="Final Results")
+                    final_output = gr.File(label="Final Results (XLSX)")
                 
                 model_a_btn.click(
                     lambda x: process_model(x, "model_a"),
@@ -685,4 +685,4 @@ if __name__ == "__main__":
     if interface:
         interface.launch(server_name="0.0.0.0", server_port=7860)
     else:
-        print("Error: Failed to create Gradio interface") 
+        print("Error: Failed to create Gradio interface")

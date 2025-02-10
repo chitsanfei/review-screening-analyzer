@@ -1,6 +1,6 @@
 import pandas as pd
 import logging
-from typing import Dict, List, Optional
+from typing import Dict
 import json
 import re
 
@@ -23,21 +23,17 @@ class ResultProcessor:
     def validate_model_response(self, result: Dict, model_key: str) -> None:
         """Validate model-specific response format"""
         if model_key == "model_a":
-            # Check if response is in the completion format
+            # 检查是否为 completion 格式
             if "choices" in result and len(result["choices"]) > 0:
                 content = result["choices"][0].get("message", {}).get("content", "")
                 if content:
                     try:
-                        # Remove markdown code block if present
                         json_content = content
                         if "```json" in content:
-                            # Extract JSON content from markdown code block
                             pattern = r"```json\s*(.*?)\s*```"
                             match = re.search(pattern, content, re.DOTALL)
                             if match:
                                 json_content = match.group(1)
-                        
-                        # Try to parse the content as JSON
                         parsed = json.loads(json_content)
                         if isinstance(parsed, dict) and "analysis" in parsed:
                             result.clear()
@@ -49,7 +45,6 @@ class ResultProcessor:
                 raise Exception("Invalid Model A response format: missing 'analysis' array")
             if not result['analysis']:
                 raise Exception("Empty analysis array in Model A response")
-            # Validate each analysis result
             for item in result['analysis']:
                 if not isinstance(item, dict):
                     raise Exception(f"Invalid analysis item format: {item}")
@@ -60,49 +55,36 @@ class ResultProcessor:
                     raise Exception(f"Missing fields in analysis item: {missing_fields}")
                 
         elif model_key == "model_b":
-            # Check if response is in the completion format
             if "choices" in result and len(result["choices"]) > 0:
                 content = result["choices"][0].get("message", {}).get("content", "")
                 if content:
                     try:
-                        # Remove markdown code block if present
                         json_content = content
                         if "```json" in content:
-                            # Extract JSON content from markdown code block
                             pattern = r"```json\s*(.*?)\s*```"
                             match = re.search(pattern, content, re.DOTALL)
                             if match:
                                 json_content = match.group(1)
-                        
-                        # Try to parse the content as JSON
                         parsed = json.loads(json_content)
                         if isinstance(parsed, dict) and "reviews" in parsed:
                             result.clear()
                             result.update(parsed)
                     except json.JSONDecodeError as e:
                         raise Exception(f"Invalid JSON in Model B response content: {content}. Error: {str(e)}")
-
+    
             if not isinstance(result, dict):
                 raise Exception("Invalid Model B response format: result is not a dictionary")
-                
             if "reviews" not in result:
                 raise Exception("Invalid Model B response format: missing 'reviews' field")
-                
             if not isinstance(result["reviews"], list):
                 raise Exception("Invalid Model B response format: 'reviews' is not a list")
-                
             if not result["reviews"]:
                 raise Exception("Empty reviews array in Model B response")
-            
-            # Validate each review
             for i, item in enumerate(result["reviews"]):
                 if not isinstance(item, dict):
                     raise Exception(f"Invalid review item format: {item}")
-                    
                 if "Index" not in item:
                     raise Exception(f"Missing 'Index' in review item: {item}")
-                
-                # Check required fields according to the new prompt format
                 required_fields = self.required_columns["model_b"]
                 missing_fields = [field for field in required_fields if field not in item]
                 if missing_fields:
@@ -111,31 +93,21 @@ class ResultProcessor:
         else:  # model_c
             if not isinstance(result, dict):
                 raise Exception("Invalid Model C response format: result is not a dictionary")
-            
             if "decisions" not in result:
                 raise Exception("Invalid Model C response format: missing 'decisions' field")
-            
             if not isinstance(result["decisions"], list):
                 raise Exception("Invalid Model C response format: 'decisions' is not a list")
-            
             if not result["decisions"]:
                 raise Exception("Empty decisions array in Model C response")
-            
-            # Validate each decision
             for item in result["decisions"]:
                 if not isinstance(item, dict):
                     raise Exception(f"Invalid decision item format: {item}")
-                
                 if "Index" not in item:
                     raise Exception(f"Missing 'Index' in decision item: {item}")
-                
                 if "C_Decision" not in item:
                     raise Exception(f"Missing 'C_Decision' in decision item: {item}")
-                
                 if "C_Reason" not in item:
                     raise Exception(f"Missing 'C_Reason' in decision item: {item}")
-                
-                # Ensure correct data types
                 try:
                     str(item["Index"])
                     bool(item["C_Decision"])
@@ -144,64 +116,169 @@ class ResultProcessor:
                     raise Exception(f"Invalid data type in decision item: {str(e)}")
     
     def merge_results(self, df: pd.DataFrame, model_results: Dict[str, pd.DataFrame]) -> pd.DataFrame:
-        """Merge all model results"""
-        logging.info("Merging results...")
+        """Merge all model results with correct column alignment and final decision computation."""
         
-        if not all(k in model_results for k in ["model_a", "model_b"]):
-            raise Exception("Model A and B results required")
-            
-        # Create a copy of input DataFrame
+        # 复制并清洗原始 DataFrame 的索引（去除可能的空格）
+        df = df.copy()
+        df.index = df.index.astype(str).str.strip()
+        
+        # 处理原始数据中的空值及清洗基础列
+        for col in ["Abstract", "DOI", "Title", "Authors"]:
+            if col in df.columns:
+                df[col] = df[col].fillna("").astype(str)
+                df[col] = df[col].apply(lambda x: x.strip() if isinstance(x, str) else "")
+                df[col] = df[col].replace(r'^[\s-]*$', "", regex=True)
+        
+        # 创建基础 DataFrame（merged_df）用于合并模型结果
         merged_df = df.copy()
         
-        # Add Model A results
-        model_a_df = model_results["model_a"]
-        for col in self.required_columns["model_a"]:
-            merged_df[col] = model_a_df[col]
+        def join_model_results(base_df: pd.DataFrame, model_key: str) -> pd.DataFrame:
+            """合并特定模型的结果，确保数据对齐，同时清洗索引和列名"""
+            if model_key not in model_results:
+                logging.warning(f"{model_key} results not found")
+                # 为所有行创建默认值
+                for col in self.required_columns[model_key]:
+                    if col.endswith('_Decision'):
+                        base_df[col] = False
+                    elif col.endswith('_Reason'):
+                        base_df[col] = "Not applicable - No model result"
+                    else:
+                        base_df[col] = "not applicable"
+                return base_df
+            
+            model_df = model_results[model_key].copy()
+            # 确保模型结果的索引和列名为字符串且去除空格
+            model_df.index = model_df.index.astype(str).str.strip()
+            model_df.columns = model_df.columns.astype(str).str.strip()
+            
+            # 确保所有必需的列都存在
+            for col in self.required_columns[model_key]:
+                if col not in model_df.columns:
+                    if col.endswith('_Decision'):
+                        model_df[col] = False
+                    elif col.endswith('_Reason'):
+                        model_df[col] = "Not applicable - Missing column"
+                    else:
+                        model_df[col] = "not applicable"
+            
+            # 对于原始数据中存在但模型结果中缺失的索引，添加默认值
+            missing_indices = set(base_df.index) - set(model_df.index)
+            if missing_indices:
+                logging.info(f"Found {len(missing_indices)} missing entries in {model_key}")
+                default_values = pd.DataFrame(
+                    index=list(missing_indices),
+                    columns=self.required_columns[model_key]
+                )
+                for col in self.required_columns[model_key]:
+                    if col.endswith('_Decision'):
+                        default_values[col] = False
+                    elif col.endswith('_Reason'):
+                        default_values[col] = "Not applicable - No result"
+                    else:
+                        default_values[col] = "not applicable"
+                model_df = pd.concat([model_df, default_values])
+            
+            # 只选择必需的列
+            model_df = model_df[self.required_columns[model_key]]
+            
+            # 使用左连接确保保留所有原始数据的索引
+            result = pd.merge(
+                base_df,
+                model_df,
+                left_index=True,
+                right_index=True,
+                how='left'
+            )
+            
+            # 填充可能的 NaN 值（使用赋值避免 chained assignment 的 inplace 操作）
+            for col in self.required_columns[model_key]:
+                if col in result.columns:
+                    if col.endswith('_Decision'):
+                        result[col] = result[col].fillna(False)
+                    elif col.endswith('_Reason'):
+                        result[col] = result[col].fillna("Not applicable - Missing value")
+                    else:
+                        result[col] = result[col].fillna("not applicable")
+            
+            return result
         
-        # Add Model B results
-        model_b_df = model_results["model_b"]
-        for col in self.required_columns["model_b"]:
-            merged_df[col] = model_b_df[col]
+        # 按顺序合并各个模型的结果
+        merged_df = join_model_results(merged_df, "model_a")
+        merged_df = join_model_results(merged_df, "model_b")
         
-        # Add Model C results if available
+        # 合并 Model C 结果，如果没有则生成默认值
         if "model_c" in model_results:
-            model_c_df = model_results["model_c"]
-            for col in self.required_columns["model_c"]:
-                merged_df[col] = model_c_df[col]
+            merged_df = join_model_results(merged_df, "model_c")
         else:
-            # If no Model C results, use logic to determine final decision
-            merged_df["C_Decision"] = None
+            merged_df["C_Decision"] = False
             merged_df["C_Reason"] = merged_df.apply(
-                lambda row: "No disagreement between Model A and B" if row["A_Decision"] == row["B_Decision"]
-                else "Disagreement not resolved",
+                lambda row: "No disagreement between Model A and B" 
+                    if pd.notna(row.get("A_Decision")) and pd.notna(row.get("B_Decision")) and row["A_Decision"] == row["B_Decision"]
+                    else "Not applicable - No Model C result",
                 axis=1
             )
         
-        # Determine final decision
-        merged_df["Final_Decision"] = merged_df.apply(
-            lambda row: row["C_Decision"] if pd.notnull(row["C_Decision"])
-            else row["A_Decision"] if row["A_Decision"] == row["B_Decision"]
-            else row["B_Decision"],
-            axis=1
-        )
+        # 计算最终决策
+        def compute_final_decision(row):
+            if pd.notna(row.get("C_Decision")):
+                return row["C_Decision"]
+            elif pd.notna(row.get("A_Decision")) and pd.notna(row.get("B_Decision")):
+                if row["A_Decision"] == row["B_Decision"]:
+                    return row["A_Decision"]
+                else:
+                    return row["B_Decision"]  # 分歧时使用 Model B 的结果
+            elif pd.notna(row.get("B_Decision")):
+                return row["B_Decision"]
+            elif pd.notna(row.get("A_Decision")):
+                return row["A_Decision"]
+            else:
+                return False  # 默认返回 False
         
-        # Ensure all required columns are present and in correct order
-        required_columns = [
+        merged_df["Final_Decision"] = merged_df.apply(compute_final_decision, axis=1)
+        
+        # 定义最终输出列及其顺序
+        output_cols = [
             "Title", "DOI", "Abstract", "Authors",
-            *self.required_columns["model_a"],
-            *self.required_columns["model_b"],
-            *self.required_columns["model_c"],
+            *self.required_columns.get("model_a", []),
+            *self.required_columns.get("model_b", []),
+            *self.required_columns.get("model_c", []),
             "Final_Decision"
         ]
         
-        # Ensure index name is correct
-        merged_df.index.name = "Index"
+        # 确保所有必需的列都存在（缺失时赋予默认值）
+        for col in output_cols:
+            if col not in merged_df.columns:
+                if col.endswith('Decision'):
+                    merged_df[col] = False
+                elif col.endswith('Reason'):
+                    merged_df[col] = "Not applicable - Missing column"
+                else:
+                    merged_df[col] = ""
         
-        # Remove possible Index column (if it exists as a regular column)
-        if "Index" in merged_df.columns:
-            merged_df = merged_df.drop(columns=["Index"])
+        # 按顺序选择存在的列
+        existing_cols = [col for col in output_cols if col in merged_df.columns]
+        merged_df = merged_df[existing_cols]
         
-        # Keep only needed columns and sort them in specified order
-        merged_df = merged_df[required_columns]
+        # 最后再次清洗所有列的空值（使用赋值避免 chained assignment 的 inplace 操作）
+        for col in merged_df.columns:
+            if col.endswith('Decision'):
+                merged_df[col] = merged_df[col].fillna(False)
+            elif col.endswith('Reason'):
+                merged_df[col] = merged_df[col].fillna("Not applicable - Missing value")
+            elif col in ["Title", "DOI", "Abstract", "Authors"]:
+                merged_df[col] = merged_df[col].fillna("").astype(str)
+            else:
+                merged_df[col] = merged_df[col].fillna("not applicable")
         
-        return merged_df 
+        # 将索引作为一列添加到最终结果中
+        merged_df.insert(0, "Index", merged_df.index)
+        
+        return merged_df
+
+    def export_to_excel(self, df: pd.DataFrame, filename: str) -> None:
+        """将 DataFrame 导出为 xlsx 文件"""
+        try:
+            df.to_excel(filename, index=False)
+            logging.info(f"Exported results to {filename} successfully.")
+        except Exception as e:
+            logging.error(f"Error exporting to Excel: {str(e)}")

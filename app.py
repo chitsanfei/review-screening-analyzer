@@ -54,6 +54,7 @@ try:
     
     # Configure the root logger
     root_logger = logging.getLogger()
+    
     root_logger.setLevel(logging.INFO)
     root_logger.addHandler(file_handler)
     root_logger.addHandler(console_handler)
@@ -66,8 +67,8 @@ def create_gradio_interface():
     
     def parse_nbib(file) -> tuple:
         """
-        Parse a citation file in NBIB or RIS format.
-        Returns a tuple containing the CSV output path and a preview text.
+        Parse a citation file in NBIB format.
+        Returns a tuple containing the Excel output path and a preview text.
         """
         try:
             if not file:
@@ -102,7 +103,7 @@ def create_gradio_interface():
     def parse_scopus(file) -> tuple:
         """
         Parse a Scopus RIS file.
-        Returns a tuple containing the CSV output path and a preview text.
+        Returns a tuple containing the Excel output path and a preview text.
         """
         try:
             if not file:
@@ -192,22 +193,30 @@ def create_gradio_interface():
             
             def progress_callback(row_index, error=False, is_empty=False):
                 nonlocal processed_rows, errors, empty_abstracts
-                processed_rows += 1
-                if error and not is_empty:
-                    errors += 1
-                if is_empty:
+                # Increase the count only when the actual processing is complete
+                if not error:
+                    processed_rows += 1
+                elif is_empty:
                     empty_abstracts += 1
+                else:
+                    errors += 1
                 
                 # Calculate progress and time estimates
                 elapsed_time = time.time() - start_time
                 progress = processed_rows / total_rows
                 if progress > 0:
-                    estimated_total_time = elapsed_time / progress
-                    remaining_time = estimated_total_time - elapsed_time
-                    logging.info(f"{model_key.upper()} Progress: {processed_rows}/{total_rows} rows "
-                               f"({progress:.1%}) - Elapsed: {elapsed_time:.1f}s - "
-                               f"Remaining: {remaining_time:.1f}s - "
-                               f"Errors: {errors} - Empty: {empty_abstracts}")
+                    # Use moving averages to smooth time estimates
+                    avg_time_per_item = elapsed_time / (processed_rows + errors + empty_abstracts)
+                    remaining_items = total_rows - (processed_rows + errors + empty_abstracts)
+                    remaining_time = avg_time_per_item * remaining_items
+                    
+                    # Use the batch size of the model to control the log output frequency
+                    batch_size = analyzer.model_manager.get_config(model_key)["batch_size"]
+                    if (processed_rows + errors + empty_abstracts) % batch_size == 0:
+                        logging.info(f"{model_key.upper()} Progress: {processed_rows + errors + empty_abstracts}/{total_rows} rows "
+                                   f"({(processed_rows + errors + empty_abstracts) / total_rows:.1%}) - "
+                                   f"Processed: {processed_rows}, Errors: {errors}, Empty: {empty_abstracts} - "
+                                   f"Elapsed: {elapsed_time:.1f}s, Remaining: {remaining_time:.1f}s")
             
             results_df = analyzer.process_batch(df, model_key, model_results, progress_callback)
             
@@ -359,7 +368,7 @@ def create_gradio_interface():
 
     def process_deduplication(files, threshold):
         """
-        Process deduplication for multiple CSV files.
+        Process deduplication for multiple Excel files.
         The function identifies duplicate entries based on a similarity threshold.
         """
         try:
@@ -422,10 +431,10 @@ def create_gradio_interface():
                  - Embase (.ris files)
                  - Web of Science (.ris files)
                  - Scopus (.ris files)
-               - Each source will be converted to a standardized CSV format
+               - Each source will be converted to a standardized Excel format
 
             2. **Deduplication** (Optional)
-               - Upload multiple CSV files from different sources
+               - Upload multiple Excel files from different sources
                - Adjust similarity threshold to control deduplication strictness
                - Get both deduplicated dataset and duplicate clusters report
 
@@ -458,7 +467,7 @@ def create_gradio_interface():
             - **DOI**: Digital Object Identifier (when available)
 
             ### Analysis Results
-            Each model will generate a CSV file containing:
+            Each model will generate an Excel file containing:
             - All original citation data
             - PICOS analysis results
             - Inclusion/exclusion decisions
@@ -469,7 +478,7 @@ def create_gradio_interface():
             with gr.Tab("Pubmed"):
                 gr.Markdown("""
                 ## Pubmed NBIB Processing
-                Upload a .nbib file from Pubmed to extract and convert it to CSV format. The extracted data will include:
+                Upload a .nbib file from Pubmed to extract and convert it to Excel format. The extracted data will include:
                 - DOI
                 - Title
                 - Authors
@@ -482,7 +491,7 @@ def create_gradio_interface():
                 
                 with gr.Row():
                     nbib_preview = gr.Textbox(label="Preview", lines=20)
-                    nbib_output = gr.File(label="Download CSV")
+                    nbib_output = gr.File(label="Download Excel")
                 
                 process_nbib_btn.click(
                     parse_nbib,
@@ -493,7 +502,7 @@ def create_gradio_interface():
             with gr.Tab("Embase"):
                 gr.Markdown("""
                 ## Embase RIS Processing
-                Upload a .ris file from Embase to extract and convert it to CSV format. The extracted data will include:
+                Upload a .ris file from Embase to extract and convert it to Excel format. The extracted data will include:
                 - DOI
                 - Title
                 - Authors
@@ -506,7 +515,7 @@ def create_gradio_interface():
                 
                 with gr.Row():
                     embase_preview = gr.Textbox(label="Preview", lines=20)
-                    embase_output = gr.File(label="Download CSV")
+                    embase_output = gr.File(label="Download Excel")
                 
                 process_embase_btn.click(
                     parse_nbib,
@@ -517,7 +526,7 @@ def create_gradio_interface():
             with gr.Tab("Web of Science"):
                 gr.Markdown("""
                 ## Web of Science RIS Processing
-                Upload a .ris file from Web of Science to extract and convert it to CSV format. The extracted data will include:
+                Upload a .ris file from Web of Science to extract and convert it to Excel format. The extracted data will include:
                 - DOI
                 - Title
                 - Authors
@@ -530,7 +539,7 @@ def create_gradio_interface():
                 
                 with gr.Row():
                     wos_preview = gr.Textbox(label="Preview", lines=20)
-                    wos_output = gr.File(label="Download CSV")
+                    wos_output = gr.File(label="Download Excel")
                 
                 process_wos_btn.click(
                     lambda file: parse_nbib(file) if file else (None, "No file uploaded"),
@@ -541,7 +550,7 @@ def create_gradio_interface():
             with gr.Tab("Scopus"):
                 gr.Markdown("""
                 ## Scopus RIS Processing
-                Upload a .ris file from Scopus to extract and convert it to CSV format. The extracted data will include:
+                Upload a .ris file from Scopus to extract and convert it to Excel format. The extracted data will include:
                 - DOI
                 - Title
                 - Authors
@@ -554,7 +563,7 @@ def create_gradio_interface():
                 
                 with gr.Row():
                     scopus_preview = gr.Textbox(label="Preview", lines=20)
-                    scopus_output = gr.File(label="Download CSV")
+                    scopus_output = gr.File(label="Download Excel")
                 
                 process_scopus_btn.click(
                     parse_scopus,
@@ -565,11 +574,11 @@ def create_gradio_interface():
         with gr.Tab("Deduplication"):
             gr.Markdown("""
             ## Citation Deduplication
-            Upload multiple CSV files to remove duplicate entries across different citation sources.
+            Upload multiple Excel files to remove duplicate entries across different citation sources.
             The system will identify similar entries based on title and author information.
             
             ### Features:
-            - Support for multiple CSV files
+            - Support for multiple Excel files
             - Adjustable similarity threshold
             - Detailed duplicate clusters report
             - Standardized output format
@@ -681,7 +690,7 @@ def create_gradio_interface():
             
             with gr.Tab("Analysis"):
                 with gr.Row():
-                    input_file = gr.File(label="Original CSV File")
+                    input_file = gr.File(label="Original Excel File")
                     model_a_input = gr.File(label="Model A Results")
                     model_b_input = gr.File(label="Model B Results")
                     model_c_input = gr.File(label="Model C Results")

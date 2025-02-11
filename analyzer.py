@@ -298,19 +298,11 @@ class PICOSAnalyzer:
                     # If API call failed or returned no results, create empty results for all items
                     if not api_results:
                         for item in batch_results:
-                            empty_results.append(self._create_empty_result(item["Index"], model_key, "API call failed or returned no results"))
+                            empty_result = self._create_empty_result(item["Index"], model_key, "API call failed or returned no results")
+                            empty_results.append(empty_result)
+                            if progress_callback:
+                                progress_callback(item["Index"], True, False)
                     else:
-                        # Update progress for processed items
-                        processed_count = len(batch_results)
-                        elapsed_time = time.time() - start_time
-                        
-                        # Log progress
-                        if processed_count > 0:
-                            progress = (processed_count / total_rows) * 100
-                            remaining_time = (elapsed_time / processed_count) * (total_rows - processed_count)
-                            logging.info(f"{model_key.upper()} Progress: {processed_count}/{total_rows} ({progress:.1f}%) - "
-                                       f"Elapsed: {elapsed_time:.1f}s, Remaining: {remaining_time:.1f}s")
-                        
                         # Update progress for processed items
                         if progress_callback:
                             for result in api_results:

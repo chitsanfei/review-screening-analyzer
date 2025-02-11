@@ -41,11 +41,11 @@ try:
     
     # File handler for logging to a file
     file_handler = logging.FileHandler(log_file, encoding='utf-8')
-    file_handler.setLevel(logging.DEBUG)
+    file_handler.setLevel(logging.INFO)
     
     # Console handler for logging to the terminal
     console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.DEBUG)
+    console_handler.setLevel(logging.INFO)
     
     # Formatter for log messages
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
@@ -54,7 +54,7 @@ try:
     
     # Configure the root logger
     root_logger = logging.getLogger()
-    root_logger.setLevel(logging.DEBUG)
+    root_logger.setLevel(logging.INFO)
     root_logger.addHandler(file_handler)
     root_logger.addHandler(console_handler)
 except Exception as e:
@@ -269,7 +269,7 @@ def create_gradio_interface():
             
             merged_df = analyzer.merge_results(df, model_results)
             
-            final_filename = "final_results.xlsx"
+            final_filename = os.path.join(DATA_DIR, "final_results.xlsx")
             result_processor.export_to_excel(merged_df, final_filename)
             
             return final_filename, "Results merged successfully"

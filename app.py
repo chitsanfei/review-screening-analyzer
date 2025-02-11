@@ -1,54 +1,74 @@
 import os
+from dotenv import load_dotenv
+import time
 import logging
 from datetime import datetime
 import gradio as gr
-from dotenv import load_dotenv
 from file_processor import FileProcessor
 from analyzer import PICOSAnalyzer
 from deduplicator import Deduplicator
-from result_processor import ResultProcessor  # 新增：导入 ResultProcessor
+from result_processor import ResultProcessor
 
-# Load environment variables
-load_dotenv()
-
-# Configuration
+# Configuration of directories
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 LOG_DIR = os.path.join(BASE_DIR, "logs")
 
-# Initialize components
+# Load .env file if it exists
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path)
+else:
+    print("Warning: .env file not found.")
+
+# Initialize components for analysis, file processing, deduplication, and result processing
 analyzer = PICOSAnalyzer()
 file_processor = FileProcessor(DATA_DIR)
 model_results = {}
 deduplicator = Deduplicator()
-result_processor = ResultProcessor()  # 实例化结果处理器
+result_processor = ResultProcessor()
 
-# Ensure directories exist
+# Ensure required directories exist
 for directory in [DATA_DIR, LOG_DIR]:
     try:
         os.makedirs(directory, exist_ok=True)
     except Exception as e:
         raise RuntimeError(f"Failed to create directory {directory}: {str(e)}")
 
-# Logging configuration
+# Configure logging: log to both a file and the console
 try:
     log_file = os.path.join(LOG_DIR, f"picos_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.FileHandler(log_file, encoding='utf-8'),
-            logging.StreamHandler()
-        ]
-    )
+    
+    # File handler for logging to a file
+    file_handler = logging.FileHandler(log_file, encoding='utf-8')
+    file_handler.setLevel(logging.DEBUG)
+    
+    # Console handler for logging to the terminal
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.DEBUG)
+    
+    # Formatter for log messages
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+    console_handler.setFormatter(formatter)
+    
+    # Configure the root logger
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.DEBUG)
+    root_logger.addHandler(file_handler)
+    root_logger.addHandler(console_handler)
 except Exception as e:
     print(f"Failed to initialize logging: {str(e)}")
     raise
 
 def create_gradio_interface():
-    """Create Gradio interface"""
+    """Create and return the Gradio interface for the PICOS Analysis System."""
+    
     def parse_nbib(file) -> tuple:
-        """Parse citation file and return results"""
+        """
+        Parse a citation file in NBIB or RIS format.
+        Returns a tuple containing the CSV output path and a preview text.
+        """
         try:
             if not file:
                 return None, "No file uploaded"
@@ -57,16 +77,15 @@ def create_gradio_interface():
             file_extension = os.path.splitext(file.name)[1].lower()
             
             if file_extension == '.nbib':
-                # Parse NBIB file
                 output_path, preview = file_processor.parse_nbib(file.name)
             elif file_extension == '.ris':
-                # Check if it's Embase RIS or WoS RIS based on content
+                # Read file content to determine RIS format (Embase or Web of Science)
                 with open(file.name, 'r', encoding='utf-8') as f:
                     content = f.read()
                 if 'T1  - ' in content:  # Embase RIS format
                     output_path, preview = file_processor.parse_embase_ris(file.name)
-                else:  # WoS RIS format
-                    output_path, preview = file_processor.parse_ris(file.name)
+                else:  # Assume Web of Science RIS format
+                    output_path, preview = file_processor.parse_wos_ris(file.name)
             else:
                 return None, "Unsupported file format. Please upload a .nbib or .ris file"
             
@@ -80,8 +99,25 @@ def create_gradio_interface():
             logging.error(error_msg)
             return None, error_msg
 
+    def parse_scopus(file) -> tuple:
+        """
+        Parse a Scopus RIS file.
+        Returns a tuple containing the CSV output path and a preview text.
+        """
+        try:
+            if not file:
+                return None, "No file uploaded"
+            output_path, preview = file_processor.parse_scopus_ris(file.name)
+            if not output_path:
+                return None, "Failed to parse file"
+            return output_path, preview
+        except Exception as e:
+            error_msg = f"Error parsing Scopus file: {str(e)}"
+            logging.error(error_msg)
+            return None, error_msg
+
     def update_picos_criteria(p, i, c, o, s):
-        """Update PICOS criteria"""
+        """Update the PICOS criteria used for analysis."""
         try:
             analyzer.update_picos_criteria({
                 "population": p.strip(),
@@ -95,7 +131,7 @@ def create_gradio_interface():
             return f"❌ Error updating PICOS criteria: {str(e)}"
     
     def update_model_settings(model_key, api_url, api_key, model_name, temperature, max_tokens, batch_size, threads, prompt, is_inference, timeout):
-        """Update model settings"""
+        """Update the settings for a specified model."""
         try:
             analyzer.update_model_config(model_key, {
                 "api_url": api_url.strip(),
@@ -106,7 +142,8 @@ def create_gradio_interface():
                 "batch_size": int(batch_size),
                 "threads": int(threads),
                 "is_inference": bool(is_inference),
-                "timeout": float(timeout)
+                "timeout": float(timeout),
+                "updated": True  # mark as manually updated
             })
             analyzer.update_prompt(model_key, prompt.strip())
             return "✓ Settings updated successfully"
@@ -114,7 +151,7 @@ def create_gradio_interface():
             return f"❌ Error updating settings: {str(e)}"
     
     def test_connection(model_key):
-        """Test API connection"""
+        """Test the API connection for a specified model."""
         try:
             result = analyzer.test_api_connection(model_key)
             return result
@@ -122,97 +159,116 @@ def create_gradio_interface():
             return f"❌ Error testing connection: {str(e)}"
     
     def process_model(input_file, model_key, model_a_input=None, model_b_input=None):
-        """Process analysis for a single model"""
+        """
+        Process analysis for a single model and return the results.
+        For Model B and C, the required previous results files must be provided.
+        """
         try:
-            # Read CSV file using file processor
             logging.info(f"Loading input file for {model_key.upper()}...")
-            df = file_processor.load_csv(input_file.name)
+            df = file_processor.load_excel(input_file.name)
             if df is None:
-                return None, "Failed to load CSV file"
+                return None, "Failed to load Excel file"
             
-            # Check and load previous model results
+            # For Model B, require Model A results; for Model C, require both Model A and B results
             if model_key == "model_b":
-                logging.info("Loading Model A results for Model B analysis...")
                 if model_a_input is None or not os.path.exists(model_a_input.name):
                     return None, "Model A results file required for MODEL_B"
-                model_results["model_a"] = file_processor.load_csv(model_a_input.name)
+                model_results["model_a"] = file_processor.load_excel(model_a_input.name)
             elif model_key == "model_c":
                 logging.info("Loading Model A and B results for Model C analysis...")
                 if model_a_input is None or not os.path.exists(model_a_input.name) or \
                    model_b_input is None or not os.path.exists(model_b_input.name):
                     return None, "Both Model A and B results files required for MODEL_C"
-                model_results["model_a"] = file_processor.load_csv(model_a_input.name)
-                model_results["model_b"] = file_processor.load_csv(model_b_input.name)
+                model_results["model_a"] = file_processor.load_excel(model_a_input.name)
+                model_results["model_b"] = file_processor.load_excel(model_b_input.name)
             
-            # Start processing
+            # Process the model
             logging.info(f"Starting {model_key.upper()} analysis...")
             total_rows = len(df)
             processed_rows = 0
             errors = 0
+            empty_abstracts = 0
+            start_time = time.time()
             
-            # 获取当前模型的批次大小
-            batch_size = analyzer.model_manager.get_config(model_key).get("batch_size", 10)
-            
-            def progress_callback(row_index, error=False):
-                nonlocal processed_rows, errors
+            def progress_callback(row_index, error=False, is_empty=False):
+                nonlocal processed_rows, errors, empty_abstracts
                 processed_rows += 1
-                if error:
+                if error and not is_empty:
                     errors += 1
-                # 根据批次大小或处理完成时显示进度
-                if processed_rows % batch_size == 0 or processed_rows == total_rows:
-                    progress = (processed_rows / total_rows) * 100
-                    logging.info(f"Processing {model_key.upper()}: {processed_rows}/{total_rows} rows ({progress:.1f}%) - Errors: {errors}")
+                if is_empty:
+                    empty_abstracts += 1
+                
+                # Calculate progress and time estimates
+                elapsed_time = time.time() - start_time
+                progress = processed_rows / total_rows
+                if progress > 0:
+                    estimated_total_time = elapsed_time / progress
+                    remaining_time = estimated_total_time - elapsed_time
+                    logging.info(f"{model_key.upper()} Progress: {processed_rows}/{total_rows} rows "
+                               f"({progress:.1%}) - Elapsed: {elapsed_time:.1f}s - "
+                               f"Remaining: {remaining_time:.1f}s - "
+                               f"Errors: {errors} - Empty: {empty_abstracts}")
             
-            # 根据是否有 model_results 来调用 process_batch
-            if model_results:
-                results_df = analyzer.process_batch(df, model_key, model_results, progress_callback)
-            else:
-                results_df = analyzer.process_batch(df, model_key, None, progress_callback)
+            results_df = analyzer.process_batch(df, model_key, model_results, progress_callback)
             
             if results_df is None:
                 return None, f"{model_key.upper()} failed to process results"
             
-            model_results[model_key] = results_df
+            # Save results immediately with fixed path in DATA_DIR
+            output_file = os.path.join(DATA_DIR, f"{model_key}_results.xlsx")
+            if model_key == "model_c":
+                # For Model C, merge all results before saving
+                merged_df = analyzer.merge_results(df, {
+                    "model_a": model_results["model_a"],
+                    "model_b": model_results["model_b"],
+                    "model_c": results_df
+                })
+                if not file_processor.save_excel(merged_df, output_file):
+                    return None, f"Failed to save {model_key.upper()} results"
+            else:
+                # For Model A and B, save individual results
+                if not file_processor.save_excel(results_df, output_file):
+                    return None, f"Failed to save {model_key.upper()} results"
             
-            # Save model-specific results as CSV (保留其它中间结果为 CSV)
-            logging.info(f"Saving {model_key.upper()} results...")
-            output_path = file_processor.save_csv(results_df, f"{model_key}_results.csv")
-            if not output_path:
-                return None, f"Failed to save {model_key.upper()} results"
-            
-            completion_msg = f"{model_key.upper()} analysis completed: processed {total_rows} rows"
+            total_time = time.time() - start_time
+            completion_msg = (f"{model_key.upper()} analysis completed in {total_time:.1f}s - "
+                            f"Processed {processed_rows} rows with {errors} errors")
             logging.info(completion_msg)
-            return output_path, completion_msg
+            
+            # Return the full path to the saved file with gr.update
+            if os.path.exists(output_file):
+                return gr.update(value=output_file), completion_msg
+            else:
+                return None, f"Failed to verify {model_key.upper()} results file"
+            
         except Exception as e:
-            error_msg = f"Error in {model_key.upper()}: {str(e)}"
+            error_msg = f"Error in {model_key.upper()} analysis: {str(e)}"
             logging.error(error_msg)
             return None, error_msg
     
     def merge_results_with_files(input_file, model_a_file, model_b_file, model_c_file):
-        """Merge all model results from files and export as XLSX"""
+        """
+        Merge all model results from the provided files and export the merged results as an Excel file.
+        """
         if not all([input_file, model_a_file, model_b_file]):
             return None, "Original file, Model A and B results are required"
         
         try:
-            # Load all files using file processor
-            df = file_processor.load_csv(input_file.name)
-            model_a_results = file_processor.load_csv(model_a_file.name)
-            model_b_results = file_processor.load_csv(model_b_file.name)
-            model_c_results = file_processor.load_csv(model_c_file.name) if model_c_file else None
+            df = file_processor.load_excel(input_file.name)
+            model_a_results = file_processor.load_excel(model_a_file.name)
+            model_b_results = file_processor.load_excel(model_b_file.name)
+            model_c_results = file_processor.load_excel(model_c_file.name) if model_c_file else None
             
             if any(result is None for result in [df, model_a_results, model_b_results]):
                 return None, "Failed to load one or more required files"
             
-            # Store results in global variable
             model_results["model_a"] = model_a_results
             model_results["model_b"] = model_b_results
             if model_c_results is not None:
                 model_results["model_c"] = model_c_results
             
-            # Merge results
             merged_df = analyzer.merge_results(df, model_results)
             
-            # Export merged results as XLSX instead of CSV
             final_filename = "final_results.xlsx"
             result_processor.export_to_excel(merged_df, final_filename)
             
@@ -221,114 +277,91 @@ def create_gradio_interface():
             return None, f"Error merging results: {str(e)}"
     
     def run_all_models(input_file):
-        """Run analysis pipeline for all models"""
+        """Run analysis pipeline for all models with streaming updates"""
         try:
-            # Read CSV file using file processor
-            df = file_processor.load_csv(input_file.name)
+            # Read Excel file using file processor
+            df = file_processor.load_excel(input_file.name)
             if df is None:
-                yield None, None, None, None, "Failed to load input file"
+                yield [None, None, None, None, "Failed to load input file"]
                 return
-            
-            total_steps = 4  # A, B, C, and merge
-            current_step = 0
-            
-            def update_progress(step_name, status):
-                nonlocal current_step
-                current_step += 1
-                progress = (current_step / total_steps) * 100
-                return f"Step {current_step}/{total_steps} ({progress:.1f}%) - {step_name}: {status}"
-            
-            # Initialize output variables
-            model_a_path = None
-            model_b_path = None
-            model_c_path = None
-            final_path = None
-            
-            # Run Model A
+
+            # --- Process Model A ---
             logging.info("Starting Model A analysis...")
-            status = update_progress("Model A", "Processing...")
-            yield model_a_path, model_b_path, model_c_path, final_path, status
-            
             model_a_results = analyzer.process_batch(df, "model_a")
             if model_a_results is None:
-                yield model_a_path, model_b_path, model_c_path, final_path, "Model A failed to process results"
+                yield [None, None, None, None, "Model A failed to process results"]
                 return
-                
-            # Save Model A results as CSV
-            model_a_path = file_processor.save_csv(model_a_results, "model_a_results.csv")
-            if not model_a_path:
-                yield None, None, None, None, "Failed to save Model A results"
+            
+            # Save Model A results with fixed path
+            model_a_path = os.path.join(DATA_DIR, "model_a_results.xlsx")
+            if not file_processor.save_excel(model_a_results, model_a_path):
+                yield [None, None, None, None, "Failed to save Model A results"]
                 return
-                
             model_results["model_a"] = model_a_results
-            status = update_progress("Model A", "Completed")
-            yield model_a_path, model_b_path, model_c_path, final_path, status
-            
-            # Run Model B
+            status_msg = "Model A completed successfully"
+            # Yield update: Model A result available
+            yield [gr.update(value=model_a_path), None, None, None, status_msg]
+
+            # --- Process Model B ---
             logging.info("Starting Model B analysis...")
-            status = update_progress("Model B", "Processing...")
-            yield model_a_path, model_b_path, model_c_path, final_path, status
-            
             model_b_results = analyzer.process_batch(df, "model_b", {"model_a": model_a_results})
             if model_b_results is None:
-                yield model_a_path, model_b_path, model_c_path, final_path, "Model B failed to process results"
+                yield [gr.update(value=model_a_path), None, None, None, "Model B failed to process results"]
                 return
-                
-            # Save Model B results as CSV
-            model_b_path = file_processor.save_csv(model_b_results, "model_b_results.csv")
-            if not model_b_path:
-                yield model_a_path, None, None, None, "Failed to save Model B results"
+            
+            # Save Model B results with fixed path
+            model_b_path = os.path.join(DATA_DIR, "model_b_results.xlsx")
+            if not file_processor.save_excel(model_b_results, model_b_path):
+                yield [gr.update(value=model_a_path), None, None, None, "Failed to save Model B results"]
                 return
-                
             model_results["model_b"] = model_b_results
-            status = update_progress("Model B", "Completed")
-            yield model_a_path, model_b_path, model_c_path, final_path, status
-            
-            # Run Model C
+            status_msg = "Model B completed successfully"
+            # Yield update: Both Model A and B results available
+            yield [gr.update(value=model_a_path), gr.update(value=model_b_path), None, None, status_msg]
+
+            # --- Process Model C ---
             logging.info("Starting Model C analysis...")
-            status = update_progress("Model C", "Processing...")
-            yield model_a_path, model_b_path, model_c_path, final_path, status
-            
             model_c_results = analyzer.process_batch(df, "model_c", {
                 "model_a": model_a_results,
                 "model_b": model_b_results
             })
             
+            model_c_path = None
             if model_c_results is not None:
-                # Save Model C results as CSV
-                model_c_path = file_processor.save_csv(model_c_results, "model_c_results.csv")
-                if not model_c_path:
-                    yield model_a_path, model_b_path, None, None, "Failed to save Model C results"
+                # Save Model C results with fixed path
+                model_c_path = os.path.join(DATA_DIR, "model_c_results.xlsx")
+                if not file_processor.save_excel(model_c_results, model_c_path):
+                    yield [gr.update(value=model_a_path), gr.update(value=model_b_path), None, None, "Failed to save Model C results"]
                     return
-                    
                 model_results["model_c"] = model_c_results
-            
-            status = update_progress("Model C", "Completed")
-            yield model_a_path, model_b_path, model_c_path, final_path, status
-            
-            # Merge results
+            status_msg = "Model C completed successfully"
+            # Yield update: Model A, B and C results available
+            yield [gr.update(value=model_a_path), gr.update(value=model_b_path), gr.update(value=model_c_path), None, status_msg]
+
+            # --- Merge results ---
             logging.info("Merging results...")
-            status = update_progress("Merge", "Processing...")
-            yield model_a_path, model_b_path, model_c_path, final_path, status
-            
             merged_df = analyzer.merge_results(df, model_results)
             
-            # Export final merged results as XLSX
-            final_filename = "final_results.xlsx"
-            result_processor.export_to_excel(merged_df, final_filename)
-            final_path = final_filename
-            
-            completion_msg = f"All models completed successfully - Processed {len(df)} rows"
-            logging.info(completion_msg)
-            yield model_a_path, model_b_path, model_c_path, final_path, completion_msg
+            # Save final results with fixed path
+            final_path = os.path.join(DATA_DIR, "final_results.xlsx")
+            if not file_processor.save_excel(merged_df, final_path):
+                yield [gr.update(value=model_a_path), gr.update(value=model_b_path), gr.update(value=model_c_path), None, "Failed to save final results"]
+                return
+
+            completion_msg = "All models completed successfully"
+            # Yield final update with all results available
+            yield [gr.update(value=model_a_path), gr.update(value=model_b_path), gr.update(value=model_c_path), gr.update(value=final_path), completion_msg]
             
         except Exception as e:
             error_msg = f"Error in pipeline: {str(e)}"
             logging.error(error_msg)
-            yield model_a_path, model_b_path, model_c_path, final_path, error_msg
+            yield [None, None, None, None, error_msg]
 
     def process_deduplication(files, threshold):
-        """Process deduplication for multiple files"""
+        """
+        Process deduplication for multiple CSV files.
+        The function identifies duplicate entries based on a similarity threshold.
+        """
         try:
             if not files:
                 return None, None, "No files uploaded"
@@ -337,7 +370,7 @@ def create_gradio_interface():
             for file in files:
                 if not file:
                     continue
-                df = file_processor.load_csv(file.name)
+                df = file_processor.load_excel(file.name)
                 if df is None:
                     return None, None, f"Failed to load file: {file.name}"
                 dataframes.append(df)
@@ -345,12 +378,10 @@ def create_gradio_interface():
             if not dataframes:
                 return None, None, "No valid files to process"
             
-            # Process deduplication
             unique_df, clusters_df = deduplicator.process_dataframes(dataframes, threshold)
             
-            # Save deduplication results as CSV (此处未改为 XLSX，可根据需要修改)
-            unique_path = file_processor.save_csv(unique_df, "deduplicated_data.csv")
-            clusters_path = file_processor.save_csv(clusters_df, "duplicate_clusters.csv")
+            unique_path = file_processor.save_excel(unique_df, "deduplicated_data.xlsx")
+            clusters_path = file_processor.save_excel(clusters_df, "duplicate_clusters.xlsx")
             
             if not unique_path or not clusters_path:
                 return None, None, "Failed to save results"
@@ -367,7 +398,7 @@ def create_gradio_interface():
             logging.error(error_msg)
             return None, None, error_msg
 
-    # Create Gradio interface
+    # Build the Gradio interface with multiple tabs
     interface = gr.Blocks(title="PICOS Analysis System")
 
     with interface:
@@ -390,6 +421,7 @@ def create_gradio_interface():
                  - Pubmed (.nbib files)
                  - Embase (.ris files)
                  - Web of Science (.ris files)
+                 - Scopus (.ris files)
                - Each source will be converted to a standardized CSV format
 
             2. **Deduplication** (Optional)
@@ -415,9 +447,10 @@ def create_gradio_interface():
             - **Pubmed**: NBIB format (.nbib)
             - **Embase**: RIS format (.ris)
             - **Web of Science**: RIS format (.ris)
+            - **Scopus**: RIS format (.ris)
 
-            ### Processed CSV Format
-            The system will generate standardized CSV files with these columns:
+            ### Processed Format
+            The system will generate standardized Excel files (XLSX format) with these columns:
             - **Index**: Unique identifier for each abstract
             - **Title**: Article title
             - **Authors**: Author list (semicolon-separated)
@@ -430,12 +463,6 @@ def create_gradio_interface():
             - PICOS analysis results
             - Inclusion/exclusion decisions
             - Reasoning for decisions
-
-            ## Tips
-            - Always test API connections before running full analysis
-            - Use deduplication when combining data from multiple sources
-            - Consider using Model C only when Models A and B disagree
-            - Regular model settings work well for most cases, but you can enable inference mode for models that provide reasoning steps
             """)
         
         with gr.Tab("Citation File Processing"):
@@ -482,7 +509,7 @@ def create_gradio_interface():
                     embase_output = gr.File(label="Download CSV")
                 
                 process_embase_btn.click(
-                    parse_nbib,  # 使用相同的处理函数，它会自动检测RIS文件类型
+                    parse_nbib,
                     inputs=[embase_file],
                     outputs=[embase_output, embase_preview]
                 )
@@ -498,17 +525,41 @@ def create_gradio_interface():
                 """)
                 
                 with gr.Row():
-                    ris_file = gr.File(label="Upload RIS File", file_types=[".ris"])
-                    process_ris_btn = gr.Button("Process RIS File")
+                    wos_file = gr.File(label="Upload WOS RIS File", file_types=[".ris"])
+                    process_wos_btn = gr.Button("Process WOS RIS File")
                 
                 with gr.Row():
-                    ris_preview = gr.Textbox(label="Preview", lines=20)
-                    ris_output = gr.File(label="Download CSV")
+                    wos_preview = gr.Textbox(label="Preview", lines=20)
+                    wos_output = gr.File(label="Download CSV")
                 
-                process_ris_btn.click(
-                    parse_nbib,  # 使用相同的处理函数，它会根据文件扩展名选择正确的解析器
-                    inputs=[ris_file],
-                    outputs=[ris_output, ris_preview]
+                process_wos_btn.click(
+                    lambda file: parse_nbib(file) if file else (None, "No file uploaded"),
+                    inputs=[wos_file],
+                    outputs=[wos_output, wos_preview]
+                )
+            
+            with gr.Tab("Scopus"):
+                gr.Markdown("""
+                ## Scopus RIS Processing
+                Upload a .ris file from Scopus to extract and convert it to CSV format. The extracted data will include:
+                - DOI
+                - Title
+                - Authors
+                - Abstract
+                """)
+                
+                with gr.Row():
+                    scopus_file = gr.File(label="Upload Scopus RIS File", file_types=[".ris"])
+                    process_scopus_btn = gr.Button("Process Scopus RIS File")
+                
+                with gr.Row():
+                    scopus_preview = gr.Textbox(label="Preview", lines=20)
+                    scopus_output = gr.File(label="Download CSV")
+                
+                process_scopus_btn.click(
+                    parse_scopus,
+                    inputs=[scopus_file],
+                    outputs=[scopus_output, scopus_preview]
                 )
 
         with gr.Tab("Deduplication"):
@@ -526,8 +577,8 @@ def create_gradio_interface():
             
             with gr.Row():
                 input_files = gr.File(
-                    label="Upload CSV Files", 
-                    file_types=[".csv"], 
+                    label="Upload Excel Files", 
+                    file_types=[".xlsx", ".xls"], 
                     file_count="multiple"
                 )
                 threshold = gr.Slider(
@@ -565,15 +616,15 @@ def create_gradio_interface():
                 
                 with gr.Group("Standard PICOS Criteria"):
                     population = gr.Textbox(label="Population", value=analyzer.picos_criteria["population"],
-                                          placeholder="e.g., patients with hepatocellular carcinoma")
+                                              placeholder="e.g., patients with hepatocellular carcinoma")
                     intervention = gr.Textbox(label="Intervention", value=analyzer.picos_criteria["intervention"],
-                                            placeholder="e.g., immunotherapy or targeted therapy")
+                                              placeholder="e.g., immunotherapy or targeted therapy")
                     comparison = gr.Textbox(label="Comparison", value=analyzer.picos_criteria["comparison"],
-                                          placeholder="e.g., standard therapy or placebo")
+                                              placeholder="e.g., standard therapy or placebo")
                     outcome = gr.Textbox(label="Outcome", value=analyzer.picos_criteria["outcome"],
-                                       placeholder="e.g., survival or response rate")
+                                         placeholder="e.g., survival or response rate")
                     study_design = gr.Textbox(label="Study Design", value=analyzer.picos_criteria["study_design"],
-                                            placeholder="e.g., randomized controlled trial")
+                                              placeholder="e.g., randomized controlled trial")
                     
                     update_picos_btn = gr.Button("Update PICOS Criteria")
                     picos_status = gr.Textbox(label="Status")
@@ -609,19 +660,17 @@ def create_gradio_interface():
                         
                         update_btn.click(
                             update_model_settings,
-                            inputs=[
-                                gr.Textbox(value=model_key, visible=False),
-                                api_url,
-                                api_key,
-                                model_name,
-                                temperature,
-                                max_tokens,
-                                batch_size,
-                                threads,
-                                prompt,
-                                is_inference,
-                                timeout
-                            ],
+                            inputs=[gr.Textbox(value=model_key, visible=False),
+                                    api_url,
+                                    api_key,
+                                    model_name,
+                                    temperature,
+                                    max_tokens,
+                                    batch_size,
+                                    threads,
+                                    prompt,
+                                    is_inference,
+                                    timeout],
                             outputs=status
                         )
                         test_btn.click(
@@ -642,16 +691,18 @@ def create_gradio_interface():
                     model_b_btn = gr.Button("Run Model B")
                     model_c_btn = gr.Button("Run Model C")
                     merge_btn = gr.Button("Merge Results")
+                    # Register run_all_btn with streaming enabled for intermediate updates
                     run_all_btn = gr.Button("Run All", variant="primary")
                 
                 status = gr.Textbox(label="Status")
                 
                 with gr.Row():
-                    model_a_output = gr.File(label="Model A Results")
-                    model_b_output = gr.File(label="Model B Results")
-                    model_c_output = gr.File(label="Model C Results")
-                    final_output = gr.File(label="Final Results (XLSX)")
+                    model_a_output = gr.File(label="Model A Results", interactive=True)
+                    model_b_output = gr.File(label="Model B Results", interactive=True)
+                    model_c_output = gr.File(label="Model C Results", interactive=True)
+                    final_output = gr.File(label="Final Results", interactive=True)
                 
+                # Individual model runs
                 model_a_btn.click(
                     lambda x: process_model(x, "model_a"),
                     inputs=[input_file],
@@ -673,7 +724,7 @@ def create_gradio_interface():
                     outputs=[final_output, status]
                 )
                 run_all_btn.click(
-                    run_all_models,
+                    fn=run_all_models,
                     inputs=[input_file],
                     outputs=[model_a_output, model_b_output, model_c_output, final_output, status]
                 )

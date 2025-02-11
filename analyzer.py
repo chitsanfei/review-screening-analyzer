@@ -7,14 +7,17 @@ from model_manager import ModelManager
 from prompt_manager import PromptManager
 from result_processor import ResultProcessor
 import re
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 class PICOSAnalyzer:
     def __init__(self):
+        # Initialize managers for models, prompts, and result processing
         self.model_manager = ModelManager()
         self.prompt_manager = PromptManager()
         self.result_processor = ResultProcessor()
-        # 示例的 PICOS 筛选标准
+        # Example PICOS filtering criteria
         self.picos_criteria = {
             "population": "patients with non-alcoholic fatty liver disease (NAFLD)",
             "intervention": "observation or management of NAFLD",
@@ -24,117 +27,387 @@ class PICOSAnalyzer:
         }
 
     def update_picos_criteria(self, criteria: Dict[str, str]) -> None:
-        """Update PICOS criteria"""
+        """Update the PICOS criteria with a given dictionary of criteria."""
         self.picos_criteria.update(criteria)
 
     def update_model_config(self, model_key: str, config: Dict) -> None:
-        """Update model configuration"""
+        """Update configuration settings for a specific model."""
         self.model_manager.update_model_config(model_key, config)
 
     def update_prompt(self, model_key: str, prompt: str) -> None:
-        """Update model prompt"""
+        """Update the prompt template for a specific model."""
         self.prompt_manager.update_prompt(model_key, prompt)
 
     def test_api_connection(self, model_key: str) -> str:
-        """Test API connection"""
+        """Test the API connection for the specified model."""
         return self.model_manager.test_api_connection(model_key)
 
+    def _validate_data(self, idx: str, row: pd.Series, model_key: str, previous_results: Dict) -> bool:
+        """
+        Validate the completeness of a single data item.
+        
+        Args:
+            idx: Index of the data item
+            row: Data row from DataFrame
+            model_key: Identifier of the model
+            previous_results: Results from previous models
+            
+        Returns:
+            bool: True if data is valid, False otherwise
+        """
+        try:
+            # Check if abstract exists and is not empty
+            if not pd.notna(row.get("Abstract")):
+                logging.warning(f"Empty abstract for index {idx}")
+                return False, True  # Second value indicates empty abstract
+                
+            # For Model B and C, validate Model A results
+            if model_key in ["model_b", "model_c"]:
+                if not previous_results or "model_a" not in previous_results:
+                    logging.warning(f"Missing Model A results for {model_key}")
+                    return False, False
+                if idx not in previous_results["model_a"].index:
+                    logging.warning(f"Index {idx} not found in Model A results")
+                    return False, False
+                    
+            # For Model C, validate Model B results
+            if model_key == "model_c":
+                if "model_b" not in previous_results:
+                    logging.warning("Missing Model B results")
+                    return False, False
+                if idx not in previous_results["model_b"].index:
+                    logging.warning(f"Index {idx} not found in Model B results")
+                    return False, False
+                    
+            return True, False
+        except Exception as e:
+            logging.error(f"Validation error for index {idx}: {str(e)}")
+            return False, False
+
+    def _process_single_item(self, idx: str, row: pd.Series, model_key: str, previous_results: Dict) -> Optional[Dict]:
+        """
+        Process a single data item and prepare it for API call.
+        
+        Args:
+            idx: Index of the data item
+            row: Data row from DataFrame
+            model_key: Identifier of the model
+            previous_results: Results from previous models
+            
+        Returns:
+            Dict containing processed item or None if processing fails
+        """
+        try:
+            # Prepare base result with abstract
+            result = {
+                "Index": idx,
+                "abstract": str(row["Abstract"]).strip()
+            }
+            
+            # Add Model A results for Model B and C
+            if model_key in ["model_b", "model_c"]:
+                a_result = previous_results["model_a"].loc[idx]
+                result["model_a_analysis"] = {
+                    "A_Decision": bool(a_result["A_Decision"]),
+                    "A_Reason": str(a_result["A_Reason"]),
+                    "A_P": str(a_result["A_P"]),
+                    "A_I": str(a_result["A_I"]),
+                    "A_C": str(a_result["A_C"]),
+                    "A_O": str(a_result["A_O"]),
+                    "A_S": str(a_result["A_S"])
+                }
+                
+            # Add Model B results for Model C
+            if model_key == "model_c":
+                b_result = previous_results["model_b"].loc[idx]
+                result["model_b_analysis"] = {
+                    "B_Decision": bool(b_result["B_Decision"]),
+                    "B_Reason": str(b_result["B_Reason"]),
+                    "B_P": str(b_result["B_P"]),
+                    "B_I": str(b_result["B_I"]),
+                    "B_C": str(b_result["B_C"]),
+                    "B_O": str(b_result["B_O"]),
+                    "B_S": str(b_result["B_S"])
+                }
+                
+            return result
+        except Exception as e:
+            logging.error(f"Processing error for index {idx}: {str(e)}")
+            return None
+
+    def _process_api_response(self, response: Dict, model_key: str) -> List[Dict]:
+        """
+        Process API response and extract results.
+        
+        Args:
+            response: Raw API response.
+            model_key: Identifier of the model.
+            
+        Returns:
+            List of processed results.
+        """
+        try:
+            if not response or not isinstance(response, dict):
+                logging.error(f"Invalid response format from {model_key}")
+                return []
+            
+            # Extract results from response
+            if "results" not in response:
+                # For inference mode, try to parse from content directly
+                if model_key == "model_c" and self.model_manager.get_config(model_key).get("is_inference"):
+                    try:
+                        # Try to parse JSON from the response content
+                        content = response.get("choices", [{}])[0].get("message", {}).get("content", "")
+                        # Extract JSON from markdown code block if present
+                        json_match = re.search(r"```json\s*(\{.*?\})\s*```", content, re.DOTALL)
+                        if json_match:
+                            content = json_match.group(1)
+                        parsed_response = json.loads(content)
+                        if "results" not in parsed_response:
+                            logging.error(f"No results found in {model_key} inference response")
+                            return []
+                        response = parsed_response
+                    except Exception as e:
+                        logging.error(f"Failed to parse inference response from {model_key}: {str(e)}")
+                        return []
+                else:
+                    logging.error(f"No results found in {model_key} response")
+                    return []
+            
+            results = response["results"]
+            if not isinstance(results, list):
+                logging.error(f"Results from {model_key} is not a list")
+                return []
+            
+            # Validate each result
+            valid_results = []
+            for result in results:
+                if not isinstance(result, dict) or "Index" not in result:
+                    logging.warning(f"Invalid result format in {model_key} response: {result}")
+                    continue
+                
+                # Ensure all required fields are present based on model type
+                if model_key == "model_a":
+                    required_fields = ["A_P", "A_I", "A_C", "A_O", "A_S", "A_Decision", "A_Reason"]
+                elif model_key == "model_b":
+                    required_fields = ["B_P", "B_I", "B_C", "B_O", "B_S", "B_Decision", "B_Reason"]
+                else:  # model_c
+                    required_fields = ["C_Decision", "C_Reason"]
+                
+                # Check for missing fields
+                missing_fields = [field for field in required_fields if field not in result]
+                if missing_fields:
+                    logging.warning(f"Missing fields {missing_fields} in {model_key} result for Index {result['Index']}")
+                    continue
+                
+                # Convert decision to boolean if it's a string
+                if model_key == "model_c" and isinstance(result.get("C_Decision"), str):
+                    result["C_Decision"] = result["C_Decision"].lower() == "true"
+                
+                valid_results.append(result)
+            
+            return valid_results
+            
+        except Exception as e:
+            logging.error(f"Error processing {model_key} response: {str(e)}")
+            return []
+
     def process_batch(self, df: pd.DataFrame, model_key: str, previous_results: Dict = None, progress_callback=None) -> pd.DataFrame:
-        """Process a batch of data, 保证即使空摘要或前置结果缺失，最终输出中也包含对应条目（理由为 Not applicable）"""
+        """
+        Process a batch of data with improved data flow and validation.
+        
+        Args:
+            df: Input DataFrame containing abstracts to process
+            model_key: Identifier of the model to use
+            previous_results: Dictionary containing results from previous models
+            progress_callback: Optional callback function to report progress
+            
+        Returns:
+            DataFrame containing processed results with consistent index
+        """
+        # Get model configuration
         config = self.model_manager.get_config(model_key)
         batch_size = config["batch_size"]
         threads = config["threads"]
-        results = []
+        results_dict = {}  # Use dictionary to prevent duplicate indices
         failed_indices = set()
         total_rows = len(df)
-        completed_rows = 0
+        start_time = time.time()
+
+        # Ensure consistent index type
+        df.index = df.index.astype(str)
+        if previous_results:
+            for key in previous_results:
+                previous_results[key].index = previous_results[key].index.astype(str)
 
         def process_batch_data(batch_df: pd.DataFrame) -> List[Dict]:
-            nonlocal completed_rows, failed_indices
-            batch_results = []     # 将用于调用 API 的条目（摘要有效且前置结果完整）
-            empty_results = []     # 存储空摘要或不适合的条目
+            nonlocal total_rows  # Add reference to outer variables
+            batch_results = []
+            empty_results = []
+            processed_count = 0
 
+            # Process each item in the batch
             for idx, row in batch_df.iterrows():
                 try:
-                    abstract_text = str(row["Abstract"]).strip() if pd.notna(row["Abstract"]) else ""
-                    
-                    # 如果摘要为空或长度不足，生成 Not applicable 记录
-                    if not abstract_text or len(abstract_text) < 50:
-                        logging.info(f"Row {idx}: Abstract too short or empty, marking as Not applicable")
-                        empty_results.append(self._create_empty_result(idx, model_key, reason="Not applicable - Abstract insufficient"))
+                    # Validate data completeness
+                    is_valid, is_empty = self._validate_data(idx, row, model_key, previous_results)
+                    if not is_valid:
+                        empty_results.append(self._create_empty_result(idx, model_key, "Not processed - Empty abstract" if is_empty else "Not processed - Invalid data"))
+                        failed_indices.add(idx)
                         if progress_callback:
-                            progress_callback(idx, False)  # 不将其标记为失败
+                            progress_callback(idx, True, is_empty)
                         continue
 
-                    abstract = {"Index": str(idx), "abstract": abstract_text}
+                    # Prepare data for API call
+                    abstract_text = row.get("Abstract", "").strip()
+                    if not abstract_text:
+                        empty_results.append(self._create_empty_result(idx, model_key, "Not processed - Empty abstract"))
+                        failed_indices.add(idx)
+                        if progress_callback:
+                            progress_callback(idx, True, True)
+                        continue
 
-                    # 对于 Model B 和 C，检查前置模型结果
-                    if model_key in ["model_b", "model_c"] and previous_results:
-                        if not self._validate_previous_results(idx, model_key, previous_results):
-                            empty_results.append(self._create_empty_result(idx, model_key, reason="Not applicable - Missing previous results"))
-                            if progress_callback:
-                                progress_callback(idx, False)  # 不将其标记为失败
-                            continue
+                    # Add to batch for processing
+                    batch_results.append({
+                        "Index": str(idx),
+                        "abstract": abstract_text
+                    })
 
-                        # 对于 Model C，若 Model A 与 Model B 结论一致，则不调用 API
-                        if model_key == "model_c":
-                            if not self._check_disagreement(idx, previous_results):
-                                empty_results.append(self._create_no_disagreement_result(idx, previous_results))
-                                if progress_callback:
-                                    progress_callback(idx, False)
-                                continue
-
-                    batch_results.append(abstract)
-                    if progress_callback:
-                        progress_callback(idx, False)
                 except Exception as e:
-                    logging.error(f"Error processing row {idx}: {str(e)}")
+                    logging.error(f"Error preparing data for index {idx}: {str(e)}")
+                    empty_results.append(self._create_empty_result(idx, model_key, f"Error: {str(e)}"))
                     failed_indices.add(idx)
                     if progress_callback:
-                        progress_callback(idx, True)
+                        progress_callback(idx, True, False)
 
-            try:
-                api_results = []
-                if batch_results:
-                    api_results = self._call_model(model_key, batch_results, previous_results)
-                return api_results + empty_results
-            except Exception as e:
-                logging.error(f"Error in model call: {str(e)}")
-                for abstract in batch_results:
-                    failed_indices.add(abstract["Index"])
-                return empty_results
+            # Process batch with API if there are valid entries
+            if batch_results:
+                try:
+                    # Prepare prompt with PICOS criteria and batch data
+                    prompt = self.prompt_manager.get_prompt(model_key).format(
+                        **{
+                            **self.picos_criteria,
+                            "abstracts_json": json.dumps(batch_results, ensure_ascii=False, indent=2)
+                        }
+                    )
+                    
+                    # Call API and process response
+                    response = self.model_manager.call_api(model_key, prompt)
+                    api_results = self._process_api_response(response, model_key)
+                    
+                    # If API call failed or returned no results, create empty results for all items
+                    if not api_results:
+                        for item in batch_results:
+                            empty_results.append(self._create_empty_result(item["Index"], model_key, "API call failed or returned no results"))
+                    else:
+                        # Update progress for processed items
+                        processed_count = len(batch_results)
+                        elapsed_time = time.time() - start_time
+                        
+                        # Log progress
+                        if processed_count > 0:
+                            progress = (processed_count / total_rows) * 100
+                            remaining_time = (elapsed_time / processed_count) * (total_rows - processed_count)
+                            logging.info(f"{model_key.upper()} Progress: {processed_count}/{total_rows} ({progress:.1f}%) - "
+                                       f"Elapsed: {elapsed_time:.1f}s, Remaining: {remaining_time:.1f}s")
+                        
+                        # Update progress for processed items
+                        if progress_callback:
+                            for result in api_results:
+                                progress_callback(result["Index"], False, False)
+                        
+                        return api_results + empty_results
+                        
+                except Exception as e:
+                    error_msg = f"Error processing batch: {str(e)}"
+                    logging.error(error_msg)
+                    for item in batch_results:
+                        empty_results.append(self._create_empty_result(item["Index"], model_key, error_msg))
+                        failed_indices.add(item["Index"])
+                        if progress_callback:
+                            progress_callback(item["Index"], True, False)
+            
+            return empty_results
 
-        # 划分 batch
-        batches = [df.iloc[i:i + batch_size].copy() for i in range(0, len(df), batch_size)]
-        with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as executor:
-            futures = [(batch_df.index, executor.submit(process_batch_data, batch_df)) for batch_df in batches]
-            for batch_indices, future in futures:
+        # Process batches using thread pool
+        with ThreadPoolExecutor(max_workers=threads) as executor:
+            futures = []
+            for i in range(0, len(df), batch_size):
+                batch_df = df.iloc[i:i + batch_size]
+                futures.append(executor.submit(process_batch_data, batch_df))
+            
+            # Collect results
+            for future in as_completed(futures):
                 try:
                     batch_results = future.result()
-                    if batch_results:
-                        results.extend(batch_results)
+                    # Store results in dictionary to handle potential duplicates
+                    for result in batch_results:
+                        idx = str(result["Index"])
+                        results_dict[idx] = result
                 except Exception as e:
-                    for idx in batch_indices:
-                        failed_indices.add(idx)
-                    logging.error(f"Error processing batch: {str(e)}")
-                finally:
-                    completed_rows += len(batch_indices)
+                    error_msg = f"Error collecting batch results: {str(e)}"
+                    logging.error(error_msg)
+                    # Don't store failed results here, they will be handled in the next step
 
-        if not results:
-            raise Exception("No results were successfully processed")
+        # Ensure all indices from original DataFrame have results
+        for idx in df.index:
+            str_idx = str(idx)
+            if str_idx not in results_dict:
+                error_msg = "Failed to process - API error or invalid response"
+                results_dict[str_idx] = self._create_empty_result(str_idx, model_key, error_msg)
+                failed_indices.add(str_idx)
 
-        # 将结果转换为 DataFrame，确保包含 Index 列
+        # Convert results dictionary to DataFrame
+        results = list(results_dict.values())
         results_df = pd.DataFrame(results)
-        results_df.set_index('Index', inplace=True)
+        
+        if not results_df.empty:
+            # Set index properly
+            results_df.set_index("Index", inplace=True)
+            results_df.index = results_df.index.astype(str)
+            
+            # Ensure all required columns exist with default values
+            for col in self._get_model_columns(model_key):
+                if col not in results_df.columns:
+                    if col.endswith("_Decision"):
+                        results_df[col] = False
+                    elif col.endswith("_Reason"):
+                        results_df[col] = "Not provided"
+                    else:
+                        results_df[col] = "not applicable"
+                        
+            # Convert boolean columns
+            decision_columns = [col for col in results_df.columns if col.endswith("_Decision")]
+            for col in decision_columns:
+                results_df[col] = results_df[col].astype(bool)
+        else:
+            # Create empty DataFrame with required columns
+            results_df = pd.DataFrame(columns=self._get_model_columns(model_key))
+            results_df.index.name = "Index"
+        
+        # Log final statistics
+        total_time = time.time() - start_time
+        success_rate = ((total_rows - len(failed_indices)) / total_rows) * 100
+        logging.info(f"{model_key.upper()} completed in {total_time:.1f}s - "
+                     f"Success rate: {success_rate:.1f}% ({total_rows - len(failed_indices)}/{total_rows})")
+        
+        # Log the final DataFrame info for debugging
+        logging.debug(f"Final DataFrame info: {results_df.info()}")
+        logging.debug(f"Final DataFrame columns: {results_df.columns.tolist()}")
+        logging.debug(f"Sample of results:\n{results_df.head()}")
+        
         return results_df
 
     def merge_results(self, df: pd.DataFrame, model_results: Dict) -> pd.DataFrame:
-        """Merge all model results"""
+        """Merge results from all models into a single DataFrame."""
         return self.result_processor.merge_results(df, model_results)
 
     def _create_empty_result(self, idx: str, model_key: str, reason: Optional[str] = None) -> Dict:
-        """创建空结果记录（用于摘要为空或缺失前置结果时），统一使用 reason 'Not applicable'"""
-        default_reason = reason if reason is not None else "Not applicable"
+        """
+        Create a default empty result entry for cases where the abstract is empty
+        or previous results are missing. The default reason is 'Not applicable' if not provided.
+        """
+        default_reason = reason if reason is not None else "Not applicable - Empty or invalid data"
         result = {"Index": str(idx)}
         if model_key == "model_a":
             result.update({
@@ -148,15 +421,15 @@ class PICOSAnalyzer:
             })
         elif model_key == "model_b":
             result.update({
-                "B_P": "-",
-                "B_I": "-",
-                "B_C": "-",
-                "B_O": "-",
-                "B_S": "-",
+                "B_P": "not applicable",
+                "B_I": "not applicable",
+                "B_C": "not applicable",
+                "B_O": "not applicable",
+                "B_S": "not applicable",
                 "B_Decision": False,
                 "B_Reason": default_reason
             })
-        else:  # model_c
+        else:  # For model_c
             result.update({
                 "C_Decision": False,
                 "C_Reason": default_reason
@@ -164,7 +437,10 @@ class PICOSAnalyzer:
         return result
 
     def _create_no_disagreement_result(self, idx: str, previous_results: Dict) -> Dict:
-        """当 Model A 与 Model B 结论一致时，直接返回 Model A 的结论，并注明 'No disagreement between Model A and B'"""
+        """
+        When Model A and Model B agree on the decision,
+        directly return Model A's result with a note indicating no disagreement.
+        """
         str_idx = str(idx)
         a_result = previous_results["model_a"].loc[str_idx]
         return {
@@ -174,7 +450,10 @@ class PICOSAnalyzer:
         }
 
     def _validate_previous_results(self, idx: str, model_key: str, previous_results: Dict) -> bool:
-        """验证前置模型结果是否存在；若缺失则返回 False，以便后续生成空记录"""
+        """
+        Validate if previous model results exist for a given index.
+        Returns False if any required result is missing, so that an empty entry can be generated.
+        """
         str_idx = str(idx)
         if "model_a" not in previous_results:
             raise Exception("Model A results required")
@@ -194,14 +473,19 @@ class PICOSAnalyzer:
         return True
 
     def _check_disagreement(self, idx: str, previous_results: Dict) -> bool:
-        """判断 Model A 与 Model B 是否存在分歧（返回布尔值）"""
+        """
+        Check whether there is a disagreement between Model A and Model B for a given index.
+        Returns True if the decisions differ, otherwise False.
+        """
         str_idx = str(idx)
         a_result = previous_results["model_a"].loc[str_idx]
         b_result = previous_results["model_b"].loc[str_idx]
         return a_result["A_Decision"] != b_result["B_Decision"]
 
     def _call_model(self, model_key: str, batch_results: List[Dict], previous_results: Dict = None) -> List[Dict]:
-        """根据 model_key 分发调用相应的模型 API"""
+        """
+        Dispatch the API call based on the model_key.
+        """
         if model_key == "model_a":
             return self._call_model_a(batch_results)
         elif model_key == "model_b":
@@ -210,16 +494,16 @@ class PICOSAnalyzer:
             return self._call_model_c(batch_results, previous_results)
 
     def _call_model_a(self, abstracts: List[Dict]) -> List[Dict]:
-        """调用 Model A 的 API"""
-        results = []  # 存储所有结果，包括空结果和API结果
+        """Call the API for Model A."""
+        results = []  # List to store all results (both empty and API results)
 
-        # 首先为每个索引创建一个默认的空结果
+        # Create a default empty result for each index
         for abstract in abstracts:
             idx = str(abstract["Index"])
             empty_result = self._create_empty_result(idx, "model_a", reason="Not applicable - Processing")
             results.append(empty_result)
 
-        # 准备有效的批处理数据
+        # Prepare batch data with valid abstracts only
         batch_data = []
         for abstract in abstracts:
             try:
@@ -239,7 +523,7 @@ class PICOSAnalyzer:
                 logging.error(f"Error preparing batch data for index {abstract.get('Index')}: {str(e)}")
                 results[next(i for i, r in enumerate(results) if r["Index"] == idx)]["A_Reason"] = f"Not applicable - Error: {str(e)}"
 
-        # 如果有有效的批处理数据，调用API
+        # If valid batch data exists, call the API
         if batch_data:
             try:
                 abstracts_json = json.dumps(batch_data, indent=2)
@@ -251,7 +535,7 @@ class PICOSAnalyzer:
                 self.result_processor.validate_model_response(response, "model_a")
                 api_results = response.get("analysis", [])
 
-                # 更新结果列表中对应的条目
+                # Update the corresponding entries in the results list with API results
                 for api_result in api_results:
                     idx = str(api_result["Index"])
                     result_idx = next(i for i, r in enumerate(results) if r["Index"] == idx)
@@ -259,17 +543,19 @@ class PICOSAnalyzer:
 
             except Exception as e:
                 logging.error(f"Error in Model A processing: {str(e)}")
-                # 保持现有的空结果不变
+                # Retain the default empty results if an error occurs
 
         return results
 
     def _parse_api_response(self, response: dict) -> dict:
         """
-        通用的 API 响应解析函数：
-          - 检查响应格式是否正确；
-          - 提取 message 中的 content（支持 markdown 格式的 ```json 代码块）；
-          - 解析为 Python 字典
+        General function for parsing API responses:
+          - Checks the response format.
+          - Extracts the content from the message (supports markdown formatted ```json code blocks).
+          - Parses the content into a Python dictionary.
         """
+        logging.debug(f"Parsing API response: {json.dumps(response, indent=2, ensure_ascii=False)}")
+        
         if not isinstance(response, dict):
             logging.error(f"Invalid response type: {type(response)}")
             raise Exception("Invalid response format: response is not a dictionary")
@@ -283,37 +569,48 @@ class PICOSAnalyzer:
         if not content:
             logging.error("Empty content in response")
             raise Exception("Invalid response format: empty content")
+            
+        logging.debug(f"Extracted content from response: {content}")
+        
+        # Extract JSON content from markdown if present
         if "```json" in content:
             pattern = r"```json\s*(.*?)\s*```"
             match = re.search(pattern, content, re.DOTALL)
             if match:
                 content = match.group(1)
+                logging.debug(f"Extracted JSON from markdown: {content}")
         try:
-            return json.loads(content)
+            parsed_content = json.loads(content)
+            logging.debug(f"Successfully parsed content to JSON: {json.dumps(parsed_content, indent=2, ensure_ascii=False)}")
+            return parsed_content
         except json.JSONDecodeError as e:
             logging.error(f"Failed to parse API response content: {content}")
+            logging.error(f"JSON parse error details: {str(e)}")
             raise Exception(f"Failed to parse API response: {str(e)}")
 
     def _call_model_b(self, abstracts: List[Dict], previous_results: Dict) -> List[Dict]:
-        """调用 Model B 的 API，基于 Model A 的结果准备数据"""
+        """
+        Call the API for Model B.
+        This function prepares the batch data based on Model A's results.
+        """
         if "model_a" not in previous_results:
             raise Exception("Model A results required")
 
         model_a_df = previous_results["model_a"]
         batch_data = []
-        results = []  # 存储所有结果，包括空结果和API结果
+        results = []  # List to store both empty and API results
 
-        # 首先为每个索引创建一个默认的空结果
+        # Create a default empty result for each index
         for abstract in abstracts:
             idx = str(abstract["Index"])
             empty_result = self._create_empty_result(idx, "model_b", reason="Not applicable - Processing")
             results.append(empty_result)
 
-        # 尝试处理每个摘要
+        # Process each abstract for batching
         for abstract in abstracts:
             try:
                 idx = str(abstract["Index"])
-                # 确保 Model A 结果存在
+                # Ensure that Model A result exists for this index
                 if idx not in model_a_df.index.astype(str).values:
                     logging.warning(f"Index {idx} not found in Model A results")
                     results[next(i for i, r in enumerate(results) if r["Index"] == idx)]["B_Reason"] = "Not applicable - Missing Model A result"
@@ -325,7 +622,7 @@ class PICOSAnalyzer:
                     results[next(i for i, r in enumerate(results) if r["Index"] == idx)]["B_Reason"] = "Not applicable - Invalid Model A result format"
                     continue
 
-                # 检查 Model A 结果中必须的字段
+                # Verify required fields exist in Model A's result
                 required_fields = ["A_Decision", "A_Reason", "A_P", "A_I", "A_C", "A_O", "A_S"]
                 missing_fields = [field for field in required_fields if field not in a_result]
                 if missing_fields:
@@ -333,7 +630,7 @@ class PICOSAnalyzer:
                     results[next(i for i, r in enumerate(results) if r["Index"] == idx)]["B_Reason"] = "Not applicable - Incomplete Model A result"
                     continue
 
-                # 准备批处理数据
+                # Prepare batch data including Model A analysis
                 batch_item = {
                     "Index": idx,
                     "abstract": abstract["abstract"],
@@ -352,7 +649,7 @@ class PICOSAnalyzer:
                 logging.error(f"Error preparing batch data for index {abstract.get('Index')}: {str(e)}")
                 results[next(i for i, r in enumerate(results) if r["Index"] == idx)]["B_Reason"] = f"Not applicable - Error: {str(e)}"
 
-        # 如果有有效的批处理数据，调用API
+        # If there is valid batch data, call the API for Model B
         if batch_data:
             try:
                 prompt = self.prompt_manager.get_prompt("model_b").format(
@@ -364,7 +661,7 @@ class PICOSAnalyzer:
                 self.result_processor.validate_model_response(parsed_response, "model_b")
                 api_results = parsed_response.get("reviews", [])
 
-                # 更新结果列表中对应的条目
+                # Update corresponding results with API response
                 for api_result in api_results:
                     idx = str(api_result["Index"])
                     result_idx = next(i for i, r in enumerate(results) if r["Index"] == idx)
@@ -372,27 +669,30 @@ class PICOSAnalyzer:
 
             except Exception as e:
                 logging.error(f"Error calling Model B API: {str(e)}")
-                # 保持现有的空结果不变
+                # Retain existing empty results in case of error
 
         return results
 
     def _call_model_c(self, abstracts: List[Dict], previous_results: Dict) -> List[Dict]:
-        """调用 Model C 的 API，结合 Model A 和 Model B 的结果进行判断"""
-        results = []  # 存储所有结果，包括空结果和API结果
+        """
+        Call the API for Model C.
+        This function combines results from Model A and Model B to determine the final decision.
+        """
+        results = []  # List to store both empty and API results
 
-        # 首先为每个索引创建一个默认的空结果
+        # Create a default empty result for each index
         for abstract in abstracts:
             idx = str(abstract["Index"])
             empty_result = self._create_empty_result(idx, "model_c", reason="Not applicable - Processing")
             results.append(empty_result)
 
-        # 准备有效的批处理数据
+        # Prepare valid batch data for processing disagreements
         batch_data = []
         for abstract in abstracts:
             try:
                 idx = str(abstract["Index"])
                 
-                # 检查前置结果是否存在
+                # Check if both Model A and Model B results exist for the current index
                 if idx not in previous_results["model_a"].index.astype(str).values:
                     logging.warning(f"Missing Model A result for index {idx}")
                     results[next(i for i, r in enumerate(results) if r["Index"] == idx)]["C_Reason"] = "Not applicable - Missing Model A result"
@@ -406,7 +706,7 @@ class PICOSAnalyzer:
                 a_result = previous_results["model_a"].loc[idx]
                 b_result = previous_results["model_b"].loc[idx]
 
-                # 检查必需的字段
+                # Check for the presence of required fields in both Model A and Model B results
                 a_required_fields = ["A_Decision", "A_Reason", "A_P", "A_I", "A_C", "A_O", "A_S"]
                 b_required_fields = ["B_Decision", "B_Reason", "B_P", "B_I", "B_C", "B_O", "B_S"]
                 
@@ -418,7 +718,7 @@ class PICOSAnalyzer:
                     results[next(i for i, r in enumerate(results) if r["Index"] == idx)]["C_Reason"] = "Not applicable - Incomplete previous results"
                     continue
 
-                # 检查是否存在分歧
+                # Check if there is a disagreement between Model A and B decisions
                 a_decision = bool(a_result["A_Decision"])
                 b_decision = bool(b_result["B_Decision"])
                 
@@ -429,6 +729,7 @@ class PICOSAnalyzer:
                     })
                     continue
 
+                # Add data for entries where there is a disagreement
                 batch_data.append({
                     "Index": idx,
                     "Abstract": abstract["abstract"],
@@ -455,7 +756,7 @@ class PICOSAnalyzer:
                 logging.error(f"Error preparing batch data for Model C index {idx}: {str(e)}")
                 results[next(i for i, r in enumerate(results) if r["Index"] == idx)]["C_Reason"] = f"Not applicable - Error: {str(e)}"
 
-        # 如果有需要处理分歧的数据，调用API
+        # If there is data with disagreements, call the API for Model C
         if batch_data:
             try:
                 prompt = self.prompt_manager.get_prompt("model_c").format(
@@ -467,7 +768,7 @@ class PICOSAnalyzer:
                 self.result_processor.validate_model_response(parsed_response, "model_c")
                 api_results = parsed_response.get("decisions", [])
 
-                # 更新结果列表中对应的条目
+                # Update corresponding entries with the API response
                 for api_result in api_results:
                     idx = str(api_result["Index"])
                     result_idx = next(i for i, r in enumerate(results) if r["Index"] == idx)
@@ -475,6 +776,15 @@ class PICOSAnalyzer:
 
             except Exception as e:
                 logging.error(f"Error calling Model C API: {str(e)}")
-                # 保持现有的空结果不变
+                # Retain the default empty results if an error occurs
 
         return results
+
+    def _get_model_columns(self, model_key: str) -> List[str]:
+        """Get the expected columns for a specific model's output."""
+        if model_key == "model_a":
+            return ["A_Decision", "A_Reason", "A_P", "A_I", "A_C", "A_O", "A_S"]
+        elif model_key == "model_b":
+            return ["B_Decision", "B_Reason", "B_P", "B_I", "B_C", "B_O", "B_S"]
+        else:  # model_c
+            return ["C_Decision", "C_Reason"]

@@ -67,39 +67,41 @@ class ModelManager:
         self.model_configs[model_key].update(config)
     
     def process_model_response(self, model_key: str, response: str) -> Dict:
-        """
-        Process response based on model type.
-        
-        Args:
-            model_key: Identifier of the model.
-            response: Raw response string from the API.
-            
-        Returns:
-            Dict containing processed response data.
-        """
+        """Process response based on model type."""
         try:
             # Debug log for raw response
-            logging.debug(f"Raw response from {model_key}: {response}")
+            logging.debug(f"[DEBUG] Raw response from {model_key}: {response}")
+            logging.debug(f"[DEBUG] Response type: {type(response)}")
             
             # Parse outer JSON
             response_obj = json.loads(response) if isinstance(response, str) else response
+            logging.debug(f"[DEBUG] Parsed response object: {json.dumps(response_obj, indent=2)}")
             
             # Process based on mode
             if self.model_configs[model_key].get("is_inference", False):
-                logging.debug(f"Processing {model_key} response in inference mode")
+                logging.debug(f"[DEBUG] Processing {model_key} response in inference mode")
+                logging.debug(f"[DEBUG] Model config: {json.dumps(self.model_configs[model_key], indent=2)}")
                 return self.process_inference_result(response_obj, model_key)
             
             # Get content from response
-            if not isinstance(response_obj, dict) or "choices" not in response_obj or not response_obj["choices"]:
-                logging.error(f"Invalid response format from {model_key}: {response_obj}")
+            if not isinstance(response_obj, dict):
+                logging.error(f"[DEBUG] Invalid response format from {model_key}: {response_obj}")
+                return self.get_default_response(model_key)
+            
+            if "choices" not in response_obj:
+                logging.error(f"[DEBUG] No choices in response: {response_obj}")
+                return self.get_default_response(model_key)
+            
+            if not response_obj["choices"]:
+                logging.error(f"[DEBUG] Empty choices in response: {response_obj}")
                 return self.get_default_response(model_key)
             
             content = response_obj["choices"][0].get("message", {}).get("content", "")
-            if not content:
-                logging.error(f"Empty content in {model_key} response")
-                return self.get_default_response(model_key)
+            logging.debug(f"[DEBUG] Extracted content: {content}")
             
-            logging.debug(f"Raw content from {model_key}: {content}")
+            if not content:
+                logging.error(f"[DEBUG] Empty content in {model_key} response")
+                return self.get_default_response(model_key)
             
             # Handle markdown code blocks
             if "```json" in content:
@@ -107,27 +109,38 @@ class ModelManager:
                 match = re.search(pattern, content, re.DOTALL)
                 if match:
                     content = match.group(1).strip()
-                    logging.debug(f"Extracted JSON from markdown: {content}")
+                    logging.debug(f"[DEBUG] Extracted JSON from markdown: {content}")
             
             # Parse inner JSON
             try:
                 result = json.loads(content)
-                logging.debug(f"Parsed JSON result: {json.dumps(result, indent=2, ensure_ascii=False)}")
+                logging.debug(f"[DEBUG] Parsed content result: {json.dumps(result, indent=2)}")
                 
-                # Ensure response has results field
+                # Validate results field
                 if "results" not in result:
-                    logging.error(f"Missing 'results' field in {model_key} response")
+                    logging.error(f"[DEBUG] Missing 'results' field in {model_key} response")
                     return self.get_default_response(model_key)
+                
+                # Validate each result item
+                for item in result.get("results", []):
+                    logging.debug(f"[DEBUG] Processing result item: {json.dumps(item, indent=2)}")
+                    if not isinstance(item, dict):
+                        logging.error(f"[DEBUG] Invalid result item format: {item}")
+                        continue
+                    if "Index" not in item:
+                        logging.error(f"[DEBUG] Missing Index in result item: {item}")
+                        continue
                 
                 return result
                 
             except json.JSONDecodeError as e:
-                logging.error(f"Failed to parse {model_key} content JSON: {str(e)}")
-                logging.error(f"Content was: {content}")
+                logging.error(f"[DEBUG] JSON parse error for {model_key}: {str(e)}")
+                logging.error(f"[DEBUG] Content causing error: {content}")
                 return self.get_default_response(model_key)
             
         except Exception as e:
-            logging.error(f"Error processing {model_key} response: {str(e)}")
+            logging.error(f"[DEBUG] Error processing {model_key} response: {str(e)}")
+            logging.error(f"[DEBUG] Full traceback:", exc_info=True)
             return self.get_default_response(model_key)
 
     def get_default_response(self, model_key: str) -> Dict:
@@ -345,90 +358,81 @@ class ModelManager:
             return f"❌ {config['name']} connection error: {str(e)}"
     
     def call_api(self, model_key: str, prompt: str) -> Dict:
-        """
-        Call API with retry mechanism and improved error handling.
-        
-        Args:
-            model_key: Identifier of the model to call.
-            prompt: Prompt text to send to the API.
+        """Call API with retry mechanism and improved error handling."""
+        try:
+            config = self.model_configs.get(model_key)
+            if not config:
+                logging.error(f"[DEBUG] Configuration not found for {model_key}")
+                raise Exception(f"Configuration not found for {model_key}")
             
-        Returns:
-            Dict containing API response.
+            logging.debug(f"[DEBUG] API call config for {model_key}: {json.dumps({k:v for k,v in config.items() if k != 'api_key'}, indent=2)}")
             
-        Raises:
-            Exception: If API call fails after retries.
-        """
-        config = self.model_configs.get(model_key)
-        if not config:
-            raise Exception(f"Configuration not found for {model_key}")
-        
-        max_retries = 3
-        retry_delay = 1  # Initial retry delay in seconds
-        
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {config['api_key']}"
-        }
-        
-        # Debug log for API call
-        logging.debug(f"Calling {model_key} API with config: {json.dumps({k:v for k,v in config.items() if k != 'api_key'}, indent=2)}")
-        
-        # Construct standard request format
-        messages = [
-            {"role": "system", "content": "You are a helpful assistant specialized in analyzing medical literature based on PICOS criteria."},
-            {"role": "user", "content": prompt}
-        ]
-        
-        data = {
-            "model": config["model"],
-            "messages": messages,
-            "temperature": config["temperature"],
-            "max_tokens": config["max_tokens"]
-        }
-        
-        logging.debug(f"Request data for {model_key}: {json.dumps(data, indent=2, ensure_ascii=False)}")
-        
-        for attempt in range(max_retries):
-            try:
-                response = requests.post(
-                    config["api_url"],
-                    headers=headers,
-                    json=data,
-                    timeout=config["timeout"]
-                )
-                
-                # Debug logs for API response
-                logging.debug(f"API Response status: {response.status_code}")
-                logging.debug(f"API Response headers: {dict(response.headers)}")
-                if response.status_code != 200:
-                    error_msg = f"API call failed for {config['name']}: {response.status_code} {response.reason}"
-                    if response.text:
-                        error_msg += f"\nResponse: {response.text}"
-                    logging.error(error_msg)
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {config['api_key']}"
+            }
+            logging.debug(f"[DEBUG] Request headers: {json.dumps({k:v for k,v in headers.items() if k != 'Authorization'}, indent=2)}")
+            
+            data = {
+                "model": config["model"],
+                "messages": [
+                    {"role": "system", "content": "You are a helpful assistant specialized in analyzing medical literature based on PICOS criteria."},
+                    {"role": "user", "content": prompt}
+                ],
+                "temperature": config["temperature"],
+                "max_tokens": config["max_tokens"]
+            }
+            logging.debug(f"[DEBUG] Request data: {json.dumps(data, indent=2)}")
+            
+            max_retries = 3
+            retry_delay = 1
+            
+            for attempt in range(max_retries):
+                try:
+                    logging.debug(f"[DEBUG] Attempt {attempt + 1} of {max_retries}")
+                    response = requests.post(
+                        config["api_url"],
+                        headers=headers,
+                        json=data,
+                        timeout=config["timeout"]
+                    )
+                    
+                    logging.debug(f"[DEBUG] API Response status: {response.status_code}")
+                    logging.debug(f"[DEBUG] API Response headers: {dict(response.headers)}")
+                    
+                    if response.status_code != 200:
+                        error_msg = f"API call failed for {config.get('name', model_key)}: {response.status_code} {response.reason}"
+                        if response.text:
+                            error_msg += f"\nResponse: {response.text}"
+                        logging.error(f"[DEBUG] {error_msg}")
+                        if attempt < max_retries - 1:
+                            time.sleep(retry_delay * (attempt + 1))
+                            continue
+                        raise Exception(error_msg)
+                    
+                    return self.process_model_response(model_key, response.text)
+                    
+                except requests.Timeout:
+                    logging.error(f"[DEBUG] Timeout on attempt {attempt + 1}/{max_retries}")
                     if attempt < max_retries - 1:
                         time.sleep(retry_delay * (attempt + 1))
                         continue
-                    raise Exception(error_msg)
-                
-                # Process response based on model type
-                return self.process_model_response(model_key, response.text)
-                
-            except requests.Timeout:
-                logging.error(f"Timeout on attempt {attempt + 1}/{max_retries}")
-                if attempt < max_retries - 1:
-                    time.sleep(retry_delay * (attempt + 1))  # Exponential backoff
-                    continue
-                raise Exception(f"API call timed out after {max_retries} attempts")
-                
-            except Exception as e:
-                error_msg = f"API call error for {config['name']}: {str(e)}"
-                logging.error(error_msg)
-                if attempt < max_retries - 1:
-                    time.sleep(retry_delay)
-                    continue
-                raise Exception(error_msg)
-                
-        raise Exception(f"API call failed after {max_retries} attempts")
+                    raise Exception(f"API call timed out after {max_retries} attempts")
+                    
+                except Exception as e:
+                    logging.error(f"[DEBUG] API call error for {config.get('name', model_key)}: {str(e)}")
+                    logging.error("[DEBUG] Full traceback:", exc_info=True)
+                    if attempt < max_retries - 1:
+                        time.sleep(retry_delay)
+                        continue
+                    raise
+                    
+            raise Exception(f"API call failed after {max_retries} attempts")
+            
+        except Exception as e:
+            logging.error(f"[DEBUG] Fatal error in API call: {str(e)}")
+            logging.error("[DEBUG] Full traceback:", exc_info=True)
+            raise
     
     def get_config(self, model_key: str) -> Dict[str, Any]:
         """
@@ -447,6 +451,7 @@ class ModelManager:
                     "api_key": os.getenv("MODEL_A_API_KEY", ""),
                     "api_url": os.getenv("MODEL_A_API_URL", ""),
                     "model": os.getenv("MODEL_A_MODEL_NAME", ""),
+                    "name": "Model A (Primary Analyzer)",
                     "temperature": float(os.getenv("MODEL_A_TEMPERATURE", "0.3")),
                     "max_tokens": int(os.getenv("MODEL_A_MAX_TOKENS", "4096")),
                     "batch_size": int(os.getenv("MODEL_A_BATCH_SIZE", "10")),
@@ -460,6 +465,7 @@ class ModelManager:
                     "api_key": os.getenv("MODEL_B_API_KEY", ""),
                     "api_url": os.getenv("MODEL_B_API_URL", ""),
                     "model": os.getenv("MODEL_B_MODEL_NAME", ""),
+                    "name": "Model B (Critical Reviewer)",
                     "temperature": float(os.getenv("MODEL_B_TEMPERATURE", "0.3")),
                     "max_tokens": int(os.getenv("MODEL_B_MAX_TOKENS", "4096")),
                     "batch_size": int(os.getenv("MODEL_B_BATCH_SIZE", "10")),
@@ -473,6 +479,7 @@ class ModelManager:
                     "api_key": os.getenv("MODEL_C_API_KEY", ""),
                     "api_url": os.getenv("MODEL_C_API_URL", ""),
                     "model": os.getenv("MODEL_C_MODEL_NAME", ""),
+                    "name": "Model C (Final Arbitrator)",
                     "temperature": float(os.getenv("MODEL_C_TEMPERATURE", "0.3")),
                     "max_tokens": int(os.getenv("MODEL_C_MAX_TOKENS", "4096")),
                     "batch_size": int(os.getenv("MODEL_C_BATCH_SIZE", "10")),

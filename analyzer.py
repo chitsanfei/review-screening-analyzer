@@ -240,8 +240,48 @@ class PICOSAnalyzer:
             for key in previous_results:
                 previous_results[key].index = previous_results[key].index.astype(str)
 
+        # For Model C, first identify indices where A and B disagree
+        if model_key == "model_c":
+            disagreement_indices = []
+            for idx in df.index:
+                try:
+                    if not self._validate_previous_results(idx, model_key, previous_results):
+                        empty_result = self._create_empty_result(idx, model_key, "Invalid or missing previous results")
+                        results_dict[str(idx)] = empty_result
+                        failed_indices.add(str(idx))
+                        if progress_callback:
+                            progress_callback(idx, True, False)
+                        continue
+
+                    if self._check_disagreement(idx, previous_results):
+                        disagreement_indices.append(idx)
+                    else:
+                        # If no disagreement, use Model A's decision
+                        no_disagreement_result = self._create_no_disagreement_result(idx, previous_results)
+                        results_dict[str(idx)] = no_disagreement_result
+                        if progress_callback:
+                            progress_callback(idx, False, False)
+                except Exception as e:
+                    logging.error(f"Error checking disagreement for index {idx}: {str(e)}")
+                    empty_result = self._create_empty_result(idx, model_key, f"Error: {str(e)}")
+                    results_dict[str(idx)] = empty_result
+                    failed_indices.add(str(idx))
+                    if progress_callback:
+                        progress_callback(idx, True, False)
+
+            # Update df to only include disagreement cases for Model C
+            if disagreement_indices:
+                df = df.loc[disagreement_indices]
+            else:
+                # If no disagreements, return results with default values
+                results = list(results_dict.values())
+                results_df = pd.DataFrame(results)
+                results_df.set_index("Index", inplace=True)
+                results_df.index = results_df.index.astype(str)
+                return results_df
+
         def process_batch_data(batch_df: pd.DataFrame) -> List[Dict]:
-            nonlocal total_rows  # Add reference to outer variables
+            nonlocal total_rows
             batch_results = []
             empty_results = []
             processed_count = 0
@@ -249,6 +289,10 @@ class PICOSAnalyzer:
             # Process each item in the batch
             for idx, row in batch_df.iterrows():
                 try:
+                    # Skip if already processed (for Model C)
+                    if str(idx) in results_dict:
+                        continue
+
                     # Validate data completeness
                     is_valid, is_empty = self._validate_data(idx, row, model_key, previous_results)
                     if not is_valid:
@@ -268,10 +312,14 @@ class PICOSAnalyzer:
                         continue
 
                     # Add to batch for processing
-                    batch_results.append({
-                        "Index": str(idx),
-                        "abstract": abstract_text
-                    })
+                    batch_item = self._process_single_item(idx, row, model_key, previous_results)
+                    if batch_item:
+                        batch_results.append(batch_item)
+                    else:
+                        empty_results.append(self._create_empty_result(idx, model_key, "Error preparing batch data"))
+                        failed_indices.add(idx)
+                        if progress_callback:
+                            progress_callback(idx, True, False)
 
                 except Exception as e:
                     logging.error(f"Error preparing data for index {idx}: {str(e)}")
@@ -339,15 +387,6 @@ class PICOSAnalyzer:
                 except Exception as e:
                     error_msg = f"Error collecting batch results: {str(e)}"
                     logging.error(error_msg)
-                    # Don't store failed results here, they will be handled in the next step
-
-        # Ensure all indices from original DataFrame have results
-        for idx in df.index:
-            str_idx = str(idx)
-            if str_idx not in results_dict:
-                error_msg = "Failed to process - API error or invalid response"
-                results_dict[str_idx] = self._create_empty_result(str_idx, model_key, error_msg)
-                failed_indices.add(str_idx)
 
         # Convert results dictionary to DataFrame
         results = list(results_dict.values())

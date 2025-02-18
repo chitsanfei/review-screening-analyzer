@@ -33,6 +33,10 @@ class ResultProcessor:
         Raises:
             Exception: If the response format is invalid
         """
+        # Log validation start
+        logging.debug(f"Starting validation for {model_key}")
+        logging.debug(f"Raw result type: {type(result)}")
+        
         if model_key == "model_a":
             # Check if response is in completion format
             if "choices" in result and len(result["choices"]) > 0:
@@ -46,26 +50,36 @@ class ResultProcessor:
                             match = re.search(pattern, content, re.DOTALL)
                             if match:
                                 json_content = match.group(1)
+                        logging.debug(f"Extracted JSON content: {json_content}")
+                        
+                        # Parse JSON content
                         parsed = json.loads(json_content)
-                        if isinstance(parsed, dict) and "analysis" in parsed:
+                        if isinstance(parsed, dict) and "results" in parsed:
                             result.clear()
                             result.update(parsed)
+                            logging.debug("Successfully parsed Model A response")
                     except json.JSONDecodeError as e:
                         raise Exception(f"Invalid JSON in Model A response content: {content}. Error: {str(e)}")
             
             # Validate Model A specific format
-            if not isinstance(result, dict) or 'analysis' not in result or not isinstance(result['analysis'], list):
-                raise Exception("Invalid Model A response format: missing 'analysis' array")
-            if not result['analysis']:
-                raise Exception("Empty analysis array in Model A response")
-            for item in result['analysis']:
+            if not isinstance(result, dict):
+                raise Exception("Invalid Model A response format: result is not a dictionary")
+            if "results" not in result:
+                raise Exception("Invalid Model A response format: missing 'results' field")
+            if not isinstance(result["results"], list):
+                raise Exception("Invalid Model A response format: 'results' is not a list")
+            if not result["results"]:
+                raise Exception("Empty results array in Model A response")
+                
+            # Validate each result item
+            for item in result["results"]:
                 if not isinstance(item, dict):
-                    raise Exception(f"Invalid analysis item format: {item}")
-                if 'Index' not in item:
-                    raise Exception(f"Missing 'Index' in analysis item: {item}")
+                    raise Exception(f"Invalid result item format: {item}")
+                if "Index" not in item:
+                    raise Exception(f"Missing 'Index' in result item: {item}")
                 missing_fields = [field for field in self.required_columns[model_key] if field not in item]
                 if missing_fields:
-                    raise Exception(f"Missing fields in analysis item: {missing_fields}")
+                    raise Exception(f"Missing fields in result item: {missing_fields}")
                 
         elif model_key == "model_b":
             # Handle Model B's response format
@@ -79,57 +93,86 @@ class ResultProcessor:
                             match = re.search(pattern, content, re.DOTALL)
                             if match:
                                 json_content = match.group(1)
+                        logging.debug(f"Extracted JSON content for Model B: {json_content}")
+                        
                         parsed = json.loads(json_content)
-                        if isinstance(parsed, dict) and "reviews" in parsed:
+                        if isinstance(parsed, dict) and "results" in parsed:
                             result.clear()
                             result.update(parsed)
+                            logging.debug("Successfully parsed Model B response")
                     except json.JSONDecodeError as e:
                         raise Exception(f"Invalid JSON in Model B response content: {content}. Error: {str(e)}")
     
             # Validate Model B specific format
             if not isinstance(result, dict):
                 raise Exception("Invalid Model B response format: result is not a dictionary")
-            if "reviews" not in result:
-                raise Exception("Invalid Model B response format: missing 'reviews' field")
-            if not isinstance(result["reviews"], list):
-                raise Exception("Invalid Model B response format: 'reviews' is not a list")
-            if not result["reviews"]:
-                raise Exception("Empty reviews array in Model B response")
-            for i, item in enumerate(result["reviews"]):
+            if "results" not in result:
+                raise Exception("Invalid Model B response format: missing 'results' field")
+            if not isinstance(result["results"], list):
+                raise Exception("Invalid Model B response format: 'results' is not a list")
+            if not result["results"]:
+                raise Exception("Empty results array in Model B response")
+                
+            # Validate each result item
+            for item in result["results"]:
                 if not isinstance(item, dict):
-                    raise Exception(f"Invalid review item format: {item}")
+                    raise Exception(f"Invalid result item format: {item}")
                 if "Index" not in item:
-                    raise Exception(f"Missing 'Index' in review item: {item}")
-                required_fields = self.required_columns["model_b"]
-                missing_fields = [field for field in required_fields if field not in item]
+                    raise Exception(f"Missing 'Index' in result item: {item}")
+                missing_fields = [field for field in self.required_columns[model_key] if field not in item]
                 if missing_fields:
                     raise Exception(f"Missing fields in Model B result: {missing_fields}")
                 
         else:  # model_c
+            # Handle Model C's response format
+            if "choices" in result and len(result["choices"]) > 0:
+                content = result["choices"][0].get("message", {}).get("content", "")
+                if content:
+                    try:
+                        json_content = content
+                        if "```json" in content:
+                            pattern = r"```json\s*(.*?)\s*```"
+                            match = re.search(pattern, content, re.DOTALL)
+                            if match:
+                                json_content = match.group(1)
+                        logging.debug(f"Extracted JSON content for Model C: {json_content}")
+                        
+                        parsed = json.loads(json_content)
+                        if isinstance(parsed, dict) and "results" in parsed:
+                            result.clear()
+                            result.update(parsed)
+                            logging.debug("Successfully parsed Model C response")
+                    except json.JSONDecodeError as e:
+                        raise Exception(f"Invalid JSON in Model C response content: {content}. Error: {str(e)}")
+            
             # Validate Model C specific format
             if not isinstance(result, dict):
                 raise Exception("Invalid Model C response format: result is not a dictionary")
-            if "decisions" not in result:
-                raise Exception("Invalid Model C response format: missing 'decisions' field")
-            if not isinstance(result["decisions"], list):
-                raise Exception("Invalid Model C response format: 'decisions' is not a list")
-            if not result["decisions"]:
-                raise Exception("Empty decisions array in Model C response")
-            for item in result["decisions"]:
+            if "results" not in result:
+                raise Exception("Invalid Model C response format: missing 'results' field")
+            if not isinstance(result["results"], list):
+                raise Exception("Invalid Model C response format: 'results' is not a list")
+            if not result["results"]:
+                raise Exception("Empty results array in Model C response")
+                
+            # Validate each result item
+            for item in result["results"]:
                 if not isinstance(item, dict):
-                    raise Exception(f"Invalid decision item format: {item}")
+                    raise Exception(f"Invalid result item format: {item}")
                 if "Index" not in item:
-                    raise Exception(f"Missing 'Index' in decision item: {item}")
-                if "C_Decision" not in item:
-                    raise Exception(f"Missing 'C_Decision' in decision item: {item}")
-                if "C_Reason" not in item:
-                    raise Exception(f"Missing 'C_Reason' in decision item: {item}")
+                    raise Exception(f"Missing 'Index' in result item: {item}")
+                missing_fields = [field for field in self.required_columns[model_key] if field not in item]
+                if missing_fields:
+                    raise Exception(f"Missing fields in Model C result: {missing_fields}")
                 try:
                     str(item["Index"])
                     bool(item["C_Decision"])
                     str(item["C_Reason"])
                 except (ValueError, TypeError) as e:
-                    raise Exception(f"Invalid data type in decision item: {str(e)}")
+                    raise Exception(f"Invalid data type in Model C result: {str(e)}")
+        
+        # Log successful validation
+        logging.debug(f"Validation completed successfully for {model_key}")
     
     def merge_results(self, df: pd.DataFrame, model_results: Dict[str, pd.DataFrame]) -> pd.DataFrame:
         """

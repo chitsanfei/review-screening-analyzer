@@ -116,7 +116,7 @@ class PICOSAnalyzer:
                     "A_O": str(a_result["A_O"]),
                     "A_S": str(a_result["A_S"])
                 }
-                
+            
             # Add Model B results for Model C
             if model_key == "model_c":
                 b_result = previous_results["model_b"].loc[idx]
@@ -129,7 +129,7 @@ class PICOSAnalyzer:
                     "B_O": str(b_result["B_O"]),
                     "B_S": str(b_result["B_S"])
                 }
-                
+            
             return result
         except Exception as e:
             logging.error(f"Processing error for index {idx}: {str(e)}")
@@ -233,6 +233,8 @@ class PICOSAnalyzer:
         failed_indices = set()
         total_rows = len(df)
         start_time = time.time()
+        processed_count = 0
+        skipped_count = 0
 
         # Ensure consistent index type
         df.index = df.index.astype(str)
@@ -259,6 +261,7 @@ class PICOSAnalyzer:
                         # If no disagreement, use Model A's decision
                         no_disagreement_result = self._create_no_disagreement_result(idx, previous_results)
                         results_dict[str(idx)] = no_disagreement_result
+                        skipped_count += 1
                         if progress_callback:
                             progress_callback(idx, False, False)
                 except Exception as e:
@@ -281,22 +284,23 @@ class PICOSAnalyzer:
                 return results_df
 
         def process_batch_data(batch_df: pd.DataFrame) -> List[Dict]:
-            nonlocal total_rows
+            nonlocal processed_count, skipped_count
             batch_results = []
             empty_results = []
-            processed_count = 0
 
             # Process each item in the batch
             for idx, row in batch_df.iterrows():
                 try:
                     # Skip if already processed (for Model C)
                     if str(idx) in results_dict:
+                        skipped_count += 1
                         continue
 
                     # Validate data completeness
                     is_valid, is_empty = self._validate_data(idx, row, model_key, previous_results)
                     if not is_valid:
-                        empty_results.append(self._create_empty_result(idx, model_key, "Not processed - Empty abstract" if is_empty else "Not processed - Invalid data"))
+                        empty_result = self._create_empty_result(idx, model_key, "Not processed - Empty abstract" if is_empty else "Not processed - Invalid data")
+                        empty_results.append(empty_result)
                         failed_indices.add(idx)
                         if progress_callback:
                             progress_callback(idx, True, is_empty)
@@ -305,7 +309,8 @@ class PICOSAnalyzer:
                     # Prepare data for API call
                     abstract_text = row.get("Abstract", "").strip()
                     if not abstract_text:
-                        empty_results.append(self._create_empty_result(idx, model_key, "Not processed - Empty abstract"))
+                        empty_result = self._create_empty_result(idx, model_key, "Not processed - Empty abstract")
+                        empty_results.append(empty_result)
                         failed_indices.add(idx)
                         if progress_callback:
                             progress_callback(idx, True, True)
@@ -316,14 +321,16 @@ class PICOSAnalyzer:
                     if batch_item:
                         batch_results.append(batch_item)
                     else:
-                        empty_results.append(self._create_empty_result(idx, model_key, "Error preparing batch data"))
+                        empty_result = self._create_empty_result(idx, model_key, "Error preparing batch data")
+                        empty_results.append(empty_result)
                         failed_indices.add(idx)
                         if progress_callback:
                             progress_callback(idx, True, False)
 
                 except Exception as e:
                     logging.error(f"Error preparing data for index {idx}: {str(e)}")
-                    empty_results.append(self._create_empty_result(idx, model_key, f"Error: {str(e)}"))
+                    empty_result = self._create_empty_result(idx, model_key, f"Error: {str(e)}")
+                    empty_results.append(empty_result)
                     failed_indices.add(idx)
                     if progress_callback:
                         progress_callback(idx, True, False)
@@ -351,18 +358,39 @@ class PICOSAnalyzer:
                             if progress_callback:
                                 progress_callback(item["Index"], True, False)
                     else:
-                        # Update progress for processed items
-                        if progress_callback:
-                            for result in api_results:
+                        # Update progress for successfully processed items
+                        for result in api_results:
+                            if progress_callback:
                                 progress_callback(result["Index"], False, False)
+                            # Add result to the batch results
+                            results_dict[str(result["Index"])] = result
+                            processed_count += 1
                         
-                        return api_results + empty_results
-                        
+                        # Calculate time statistics
+                        elapsed_time = time.time() - start_time
+                        if processed_count > 0:
+                            avg_time_per_item = elapsed_time / processed_count
+                            remaining_items = total_rows - (processed_count + len(failed_indices) + skipped_count)
+                            estimated_remaining_time = avg_time_per_item * remaining_items
+                            
+                            # Log detailed progress information
+                            logging.info(
+                                f"{model_key.upper()} Progress: "
+                                f"Processed: {processed_count} - "
+                                f"Remaining: {remaining_items} - "
+                                f"Skipped: {skipped_count} - "
+                                f"Elapsed Time: {elapsed_time:.1f}s - "
+                                f"Est. Remaining: {estimated_remaining_time:.1f}s"
+                            )
+                    
+                    return api_results + empty_results
+                    
                 except Exception as e:
                     error_msg = f"Error processing batch: {str(e)}"
                     logging.error(error_msg)
                     for item in batch_results:
-                        empty_results.append(self._create_empty_result(item["Index"], model_key, error_msg))
+                        empty_result = self._create_empty_result(item["Index"], model_key, error_msg)
+                        empty_results.append(empty_result)
                         failed_indices.add(item["Index"])
                         if progress_callback:
                             progress_callback(item["Index"], True, False)
@@ -420,12 +448,7 @@ class PICOSAnalyzer:
         total_time = time.time() - start_time
         success_rate = ((total_rows - len(failed_indices)) / total_rows) * 100
         logging.info(f"{model_key.upper()} completed in {total_time:.1f}s - "
-                     f"Success rate: {success_rate:.1f}% ({total_rows - len(failed_indices)}/{total_rows})")
-        
-        # Log the final DataFrame info for debugging
-        logging.debug(f"Final DataFrame info: {results_df.info()}")
-        logging.debug(f"Final DataFrame columns: {results_df.columns.tolist()}")
-        logging.debug(f"Sample of results:\n{results_df.head()}")
+                    f"Success rate: {success_rate:.1f}% ({total_rows - len(failed_indices)}/{total_rows})")
         
         return results_df
 

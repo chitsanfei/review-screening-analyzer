@@ -31,7 +31,7 @@ IMPORTANT: You must follow these strict JSON formatting rules:
 
 Provide your analysis in this exact JSON format:
 {{
-  "analysis": [
+  "results": [
     {{
       "Index": "ARTICLE_INDEX",
       "A_P": "brief population description",
@@ -61,7 +61,7 @@ Target PICOS criteria:
 - Outcome: {outcome}
 - Study Design: {study_design}
 
-Articles for review:
+Input abstracts:
 {abstracts_json}
 
 Each article in the input contains:
@@ -110,7 +110,7 @@ IMPORTANT: You must follow these strict JSON formatting rules:
 
 Return your analysis in this exact JSON format:
 {{
-  "reviews": [
+  "results": [
     {{
       "Index": "ARTICLE_INDEX",
       "B_Decision": true/false,
@@ -132,8 +132,8 @@ Remember to be thorough in your critique while maintaining objectivity and evide
 
 CRITICAL: You MUST include ALL fields in your response, especially B_S. If you agree with Model A's study design analysis, use "-" for B_S, but NEVER omit it.""",
 
-            "model_c": """You are the final arbitrator in a systematic review process.
-Your task is to resolve disagreements between Model A and Model B's analyses.
+            "model_c": """You are the final arbitrator in a systematic review team.
+Your task is to analyze the assessments from Model A and Model B, and make a final decision.
 
 Target PICOS criteria:
 - Population: {population}
@@ -142,51 +142,42 @@ Target PICOS criteria:
 - Outcome: {outcome}
 - Study Design: {study_design}
 
-Articles with disagreements:
-{disagreements_json}
+Input abstracts:
+{abstracts_json}
 
 Each article in the input contains:
 - Index: article identifier
-- Abstract: original article abstract
-- model_a_analysis:
-  - A_P, A_I, A_C, A_O, A_S: extracted PICOS elements
-  - A_Decision: inclusion decision
-  - A_Reason: explanation for the decision
-- model_b_analysis:
-  - B_P, B_I, B_C, B_O, B_S: reviewed PICOS elements
-  - B_Decision: reviewed decision
-  - B_Reason: critical analysis
+- abstract: original article abstract
+- model_a_analysis: Model A's assessment
+- model_b_analysis: Model B's assessment
 
 Your task is to:
 1. Review the original abstract
-2. Consider both Model A and B's PICOS extractions
-3. Consider both models' inclusion decisions and reasoning
-4. Make a final decision on inclusion
-5. Provide clear reasoning for your decision
+2. Compare Model A and Model B's assessments
+3. Make a final decision considering:
+   - Accuracy of PICOS criteria matching
+   - Validity of reasoning from both models
+   - Evidence from the abstract
+4. Provide your final assessment:
+   - C_Decision: final inclusion decision
+   - C_Reason: detailed explanation of your decision
+   - Note any disagreements between models and how you resolved them
 
-IMPORTANT: You must follow these strict JSON formatting rules:
-1. Use double quotes for all strings
-2. Ensure all strings are properly terminated
-3. Use commas between array items and object properties
-4. Do not use trailing commas
-5. Keep the response concise and avoid unnecessary whitespace
-6. Escape any special characters in strings
-7. Use true/false for C_Decision
-
-Return your decisions in this EXACT JSON format (no other text allowed):
+Return your analysis in this exact JSON format:
 {{
-  "decisions": [
+  "results": [
     {{
       "Index": "ARTICLE_INDEX",
       "C_Decision": true/false,
-      "C_Reason": "brief explanation considering both models' analyses"
+      "C_Reason": "detailed reasoning with evidence"
     }},
     ...
   ]
 }}
 
-Keep all descriptions brief and focused. Do not include line breaks or special characters in the text fields.
-Be thorough and objective in your final judgment."""
+Keep your reasoning focused and evidence-based.
+Your C_Decision should be based on whether the article truly meets all PICOS criteria.
+Be thorough in your analysis while maintaining objectivity."""
         }
     
     def update_prompt(self, model_key: str, prompt: str) -> None:

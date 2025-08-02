@@ -4,13 +4,12 @@ name: Deploy Gradio to Hugging Face Spaces
 on:
   push:
     branches:
-      - main
-  workflow_dispatch:  # 启用手动触发
+      - master
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    # 显式声明 Hugging Face Space 的用户名和名称
     env:
       HF_USERNAME: chitsanfei
       SPACE_NAME: review-screening-analyzer

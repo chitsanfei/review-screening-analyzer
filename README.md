@@ -1,4 +1,4 @@
----
+<!--
 ---
 title: Review Screening Analyzer
 emoji: 📚
@@ -9,8 +9,7 @@ sdk_version: "3.25.0"
 app_file: app.py
 pinned: true
 ---
-
----
+-->
 
 <div align="center">
     <hr>

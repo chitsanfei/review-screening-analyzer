@@ -1,0 +1,43 @@
+# .github/workflows/deploy_to_hf_space.yml
+name: Deploy Gradio to Hugging Face Spaces
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      HF_USERNAME: chitsanfei
+      SPACE_NAME: review-screening-analyzer
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.8"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Push to Hugging Face Space
+        # HF_TOKEN 需在仓库 Settings → Secrets 中配置
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          # 配置 Git 用户信息
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+          # 强制推送当前 HEAD 到远端 main 分支
+          git push -f \
+            https://$HF_USERNAME:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/$HF_USERNAME/$SPACE_NAME \
+            HEAD:main

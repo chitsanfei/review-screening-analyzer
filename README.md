@@ -24,7 +24,7 @@ pinned: true
 > [!tip]
 > A online demo can be accessed at [Hugging Face](https://huggingface.co/spaces/chitsanfei/review-screening-analyzer).
 
-## 目录
+## Catalog
 
 - [Introduction](#Introduction)
 - [Usage](#usage)

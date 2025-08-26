@@ -11,6 +11,7 @@ pinned: true
 
 <div align="center">
     <hr>
+    <div style="font-size: 5em; margin: 1px 0;">🔍</div>
     <h1>Review Screening Analyzer</h1>
     <b>A Simple Literature Filtering Tool</b>
 </div>
@@ -18,10 +19,10 @@ pinned: true
 ---
 
 > [!important]
-> This project is currently under development and marked as research in progress status, don't use it withour authors' permission.
+> This is a demo code for the paper "Automated Literature Screening for Hepatocellular Carcinoma Treatment: Integrating Three Large Language Models" published in the Journal of Medical Internet Research Medical Informatics. Please cite our paper and feel free to use it for your own research purposes.
 
-> [!important]
-> This is a demo code for the paper "Automated Literature Screening for Hepatocellular Carcinoma Treatment: Integrating Three Large Language Models" published in the Journal of Medical Internet Research Medical Informatics.
+> [!info]
+> A online demo can be accessed at [Hugging Face](https://huggingface.co/spaces/chitsanfei/review-screening-analyzer).
 
 ## 目录
 
@@ -94,4 +95,4 @@ If you have any questions or suggestions, please contact us through the followin
 
 ---
 
-Thank you for your usage and support! 🌟
+Thank you for your use and support! 🌟

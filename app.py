@@ -329,10 +329,10 @@ INTRO_HTML = """
 </div>
 
 <div class="info-box">
-    <strong>About PICOS Framework</strong><br>
-    PICOS is a structured approach for formulating systematic review questions:
-    <strong>P</strong>opulation, <strong>I</strong>ntervention, <strong>C</strong>omparison,
-    <strong>O</strong>utcome, and <strong>S</strong>tudy Design.
+    <strong>About This Project</strong><br>
+    This project is a demo implementation of the paper <em>"Automated Literature Screening for Hepatocellular Carcinoma Treatment Through Integration of 3 Large Language Models: Methodological Study"</em> published in <strong>JMIR Medical Informatics</strong> (doi: <a href="https://medinform.jmir.org/2025/1/e76252" target="_blank" rel="noopener noreferrer">10.2196/76252</a>).
+    <br><br>
+    It is for learning purposes only. If it is helpful to you, please cite our article, thank you!
 </div>
 
 <h3 style="margin-top: 2rem; color: #1e293b;">Supported File Formats</h3>

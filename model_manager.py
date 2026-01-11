@@ -129,7 +129,7 @@ class ModelManager:
 
         try:
             response = requests.post(
-                config.api_url,
+                f"{config.api_url}/chat/completions",
                 headers={
                     "Content-Type": "application/json",
                     "Authorization": f"Bearer {config.api_key}"
@@ -180,7 +180,7 @@ class ModelManager:
         for attempt in range(MAX_RETRIES):
             try:
                 response = requests.post(
-                    config.api_url,
+                    f"{config.api_url}/chat/completions",
                     headers=headers,
                     json=data,
                     timeout=config.timeout

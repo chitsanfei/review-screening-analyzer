@@ -845,7 +845,8 @@ def create_gradio_interface():
                     run_all_btn.click(
                         run_full_pipeline,
                         inputs=[input_file],
-                        outputs=[model_a_output, model_b_output, model_c_output, final_output, analysis_status]
+                        outputs=[model_a_output, model_b_output, model_c_output, final_output, analysis_status],
+                        queue=True
                     )
 
                     model_a_btn.click(
@@ -871,6 +872,9 @@ def create_gradio_interface():
                         inputs=[input_file, model_a_input, model_b_input, model_c_input],
                         outputs=[final_output, analysis_status]
                     )
+
+    # Enable queue for streaming responses
+    interface.queue()
 
     return interface
 

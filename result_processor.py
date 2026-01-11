@@ -64,7 +64,13 @@ class ResultProcessor:
             # Organize output columns
             merged = self._organize_columns(merged)
 
-            # Add Index as first column
+            # Handle Index columns - use distinct names based on source
+            # First check if there's already an Index column from input data
+            if "Index" in merged.columns:
+                # Rename the existing Index column to indicate its source
+                merged = merged.rename(columns={"Index": "Original_Index"})
+
+            # Add DataFrame's index as Index column (for analysis purposes)
             merged.insert(0, "Index", merged.index)
 
             return merged

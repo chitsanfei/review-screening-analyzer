@@ -249,6 +249,11 @@ class FileProcessor:
         try:
             df = df.copy()
 
+            # Handle Index column conflict
+            if "Index" in df.columns:
+                # If there's already an Index column, save it as Original_Index to avoid conflict
+                df = df.rename(columns={"Index": "Original_Index"})
+
             # Ensure proper index
             if df.index.name != "Index":
                 df.index.name = "Index"

@@ -4,6 +4,7 @@ A modern Gradio-based web interface for medical literature screening.
 """
 
 import os
+import sys
 import time
 import logging
 from datetime import datetime
@@ -37,9 +38,10 @@ log_file = os.path.join(LOG_DIR, f"picos_{datetime.now().strftime('%Y%m%d_%H%M%S
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
+    force=True,
     handlers=[
         logging.FileHandler(log_file, encoding='utf-8'),
-        logging.StreamHandler()
+        logging.StreamHandler(sys.stdout)
     ]
 )
 
@@ -462,8 +464,25 @@ def process_single_model(input_file, model_key: str, model_a_input=None, model_b
             prev_results["model_a"] = file_processor.load_excel(model_a_input.name)
             prev_results["model_b"] = file_processor.load_excel(model_b_input.name)
 
+        total_abstracts = len(df)
+        model_names = {
+            "model_a": "🔍 Model A (初步分析)",
+            "model_b": "🔎 Model B (详细验证)",
+            "model_c": "⚖️ Model C (最终仲裁)"
+        }
+
+        # Get batch size from configuration
+        config = analyzer.model_manager.get_config(model_key)
+
+        logging.info(f"""
+🚀 开始 {model_names[model_key]} 单独分析
+├─ 总任务数: {total_abstracts}
+├─ 批次大小: {config['batch_size']}
+└─ 开始时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}""")
+
         start_time = time.time()
-        results_df = analyzer.process_batch(df, model_key, prev_results if prev_results else None)
+        progress_cb = create_progress_callback(model_key, total_abstracts, config['batch_size'])
+        results_df = analyzer.process_batch(df, model_key, prev_results if prev_results else None, progress_callback=progress_cb)
 
         if results_df is None:
             return None, f"{model_key.upper()} analysis failed"
@@ -486,6 +505,62 @@ def process_single_model(input_file, model_key: str, model_a_input=None, model_b
         return None, f"✗ Error: {str(e)}"
 
 
+def create_progress_callback(model_key: str, total_tasks: int, batch_size: int = 10):
+    """Create a progress callback function that logs detailed progress."""
+    processed_tasks = set()  # Track unique processed task IDs
+    start_time = {"time": time.time()}
+
+    def progress_callback(task_id: str, is_completed: bool, is_failed: bool):
+        # Only count unique completed/failed tasks
+        if is_completed or is_failed:
+            processed_tasks.add(task_id)
+
+        # Calculate real-time progress
+        progress = len(processed_tasks)
+        total = total_tasks
+        percentage = (progress / total) * 100 if total > 0 else 0
+
+        # Calculate elapsed time
+        elapsed = time.time() - start_time["time"]
+
+        # Calculate estimated remaining time
+        if progress > 0:
+            avg_time_per_task = elapsed / progress
+            remaining_tasks = total - progress
+            estimated_remaining = remaining_tasks * avg_time_per_task
+
+            # Format time
+            if estimated_remaining < 60:
+                eta_str = f"{estimated_remaining:.1f}s"
+            elif estimated_remaining < 3600:
+                eta_str = f"{estimated_remaining/60:.1f}m"
+            else:
+                eta_str = f"{estimated_remaining/3600:.1f}h"
+        else:
+            eta_str = "calculating..."
+
+        # Format elapsed time
+        if elapsed < 60:
+            elapsed_str = f"{elapsed:.1f}s"
+        elif elapsed < 3600:
+            elapsed_str = f"{elapsed/60:.1f}m"
+        else:
+            elapsed_str = f"{elapsed/3600:.1f}h"
+
+        # Determine status
+        if is_completed:
+            status = "✅Done"
+        elif is_failed:
+            status = "❌Failed"
+        else:
+            status = "🔄Processing"
+
+        # Log single-line progress info
+        logging.info(f"{model_key.upper()} | Index:{task_id} | Progress:{progress}/{total}({percentage:.1f}%) | Elapsed:{elapsed_str} | ETA:{eta_str} | Status:{status}")
+
+    return progress_callback
+
+
 def run_full_pipeline(input_file) -> Generator:
     """Run complete analysis pipeline with streaming updates."""
     if not input_file:
@@ -499,10 +574,23 @@ def run_full_pipeline(input_file) -> Generator:
             return
 
         results = {}
+        total_abstracts = len(df)
+
+        # Get batch sizes from configurations
+        config_a = analyzer.model_manager.get_config("model_a")
+        config_b = analyzer.model_manager.get_config("model_b")
+        config_c = analyzer.model_manager.get_config("model_c")
 
         # Model A
-        logging.info("Starting Model A analysis...")
-        results["model_a"] = analyzer.process_batch(df, "model_a")
+        logging.info(f"""
+🚀 开始 Model A 分析 (初步筛选)
+├─ 总任务数: {total_abstracts}
+├─ 批次大小: {config_a['batch_size']}
+└─ 开始时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}""")
+
+        progress_cb_a = create_progress_callback("model_a", total_abstracts, config_a['batch_size'])
+        results["model_a"] = analyzer.process_batch(df, "model_a", progress_callback=progress_cb_a)
+
         if results["model_a"] is None:
             yield [None, None, None, None, "Model A failed"]
             return
@@ -512,8 +600,15 @@ def run_full_pipeline(input_file) -> Generator:
         yield [gr.update(value=model_a_path), None, None, None, "Model A completed"]
 
         # Model B
-        logging.info("Starting Model B analysis...")
-        results["model_b"] = analyzer.process_batch(df, "model_b", {"model_a": results["model_a"]})
+        logging.info(f"""
+🚀 开始 Model B 分析 (详细验证)
+├─ 总任务数: {total_abstracts}
+├─ 批次大小: {config_b['batch_size']}
+└─ 开始时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}""")
+
+        progress_cb_b = create_progress_callback("model_b", total_abstracts, config_b['batch_size'])
+        results["model_b"] = analyzer.process_batch(df, "model_b", {"model_a": results["model_a"]}, progress_callback=progress_cb_b)
+
         if results["model_b"] is None:
             yield [gr.update(value=model_a_path), None, None, None, "Model B failed"]
             return
@@ -523,11 +618,17 @@ def run_full_pipeline(input_file) -> Generator:
         yield [gr.update(value=model_a_path), gr.update(value=model_b_path), None, None, "Model B completed"]
 
         # Model C
-        logging.info("Starting Model C analysis...")
+        logging.info(f"""
+🚀 开始 Model C 分析 (最终仲裁)
+├─ 总任务数: {total_abstracts}
+├─ 批次大小: {config_c['batch_size']}
+└─ 开始时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}""")
+
+        progress_cb_c = create_progress_callback("model_c", total_abstracts, config_c['batch_size'])
         results["model_c"] = analyzer.process_batch(df, "model_c", {
             "model_a": results["model_a"],
             "model_b": results["model_b"]
-        })
+        }, progress_callback=progress_cb_c)
 
         model_c_path = None
         if results["model_c"] is not None:

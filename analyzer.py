@@ -167,7 +167,7 @@ class PICOSAnalyzer:
                     )
                     failed_indices.add(str_idx)
                     if progress_callback:
-                        progress_callback(str_idx, True, False)
+                        progress_callback(str_idx, False, True)
                     continue
 
                 a_decision = previous_results["model_a"].loc[str_idx, "A_Decision"]
@@ -189,7 +189,7 @@ class PICOSAnalyzer:
                 results_dict[str_idx] = self._create_empty_result(str_idx, "model_c", str(e))
                 failed_indices.add(str_idx)
                 if progress_callback:
-                    progress_callback(str_idx, True, False)
+                    progress_callback(str_idx, False, True)
 
         filtered_df = df.loc[disagreement_indices] if disagreement_indices else df.iloc[0:0]
         return filtered_df, results_dict, failed_indices
@@ -304,7 +304,7 @@ class BatchProcessor:
                 )
                 self.failed_indices.add(str_idx)
                 if self.progress_callback:
-                    self.progress_callback(str_idx, True, True)
+                    self.progress_callback(str_idx, False, True)
                 continue
 
             # Validate previous results for Model B/C
@@ -319,7 +319,7 @@ class BatchProcessor:
                     )
                     self.failed_indices.add(str_idx)
                     if self.progress_callback:
-                        self.progress_callback(str_idx, True, False)
+                        self.progress_callback(str_idx, False, True)
                     continue
 
             # Prepare batch item
@@ -331,6 +331,8 @@ class BatchProcessor:
                     self.analyzer._create_empty_result(str_idx, self.model_key, "Preparation error")
                 )
                 self.failed_indices.add(str_idx)
+                if self.progress_callback:
+                    self.progress_callback(str_idx, False, True)
 
         # Process batch with API
         if batch_items:
@@ -338,7 +340,7 @@ class BatchProcessor:
             if api_results:
                 for result in api_results:
                     if self.progress_callback:
-                        self.progress_callback(result["Index"], False, False)
+                        self.progress_callback(result["Index"], True, False)
                 return api_results + empty_results
             else:
                 # API failed - create empty results for all items
@@ -349,7 +351,7 @@ class BatchProcessor:
                         )
                     )
                     if self.progress_callback:
-                        self.progress_callback(item["Index"], True, False)
+                        self.progress_callback(item["Index"], False, True)
 
         return empty_results
 

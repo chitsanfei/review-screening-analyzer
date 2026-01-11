@@ -1,9 +1,12 @@
+"""
+Prompt Manager - Manages model-specific prompts for PICOS analysis.
+"""
+
 from typing import Dict
 
-class PromptManager:
-    def __init__(self):
-        self.prompts = {
-            "model_a": """You are a medical research expert analyzing clinical trial abstracts.
+# Prompt templates for each model
+PROMPTS: Dict[str, str] = {
+    "model_a": """You are a medical research expert analyzing clinical trial abstracts.
 Your task is to analyze each abstract and determine if it matches the PICOS criteria.
 
 Target PICOS criteria:
@@ -50,7 +53,7 @@ Keep all descriptions brief and focused. Do not include line breaks or special c
 If any field is not found in the abstract, use "not specified" as the value.
 Be strict in your evaluation and ensure the output is valid JSON format.""",
 
-            "model_b": """You are a critical reviewer in a systematic review team.
+    "model_b": """You are a critical reviewer in a systematic review team.
 Your task is to rigorously scrutinize Model A's analysis and provide your own assessment.
 You should actively look for potential flaws or oversights in Model A's analysis, while maintaining a high standard of evidence-based evaluation.
 
@@ -132,7 +135,7 @@ Remember to be thorough in your critique while maintaining objectivity and evide
 
 CRITICAL: You MUST include ALL fields in your response, especially B_S. If you agree with Model A's study design analysis, use "-" for B_S, but NEVER omit it.""",
 
-            "model_c": """You are the final arbitrator in a systematic review team.
+    "model_c": """You are the final arbitrator in a systematic review team.
 Your task is to analyze the assessments from Model A and Model B, and make a final decision.
 
 Target PICOS criteria:
@@ -178,14 +181,23 @@ Return your analysis in this exact JSON format:
 Keep your reasoning focused and evidence-based.
 Your C_Decision should be based on whether the article truly meets all PICOS criteria.
 Be thorough in your analysis while maintaining objectivity."""
-        }
-    
+}
+
+
+class PromptManager:
+    """Manages model-specific prompts for PICOS analysis."""
+
+    __slots__ = ('_prompts',)
+
+    def __init__(self):
+        self._prompts = PROMPTS.copy()
+
     def update_prompt(self, model_key: str, prompt: str) -> None:
-        """Update model prompt"""
-        if model_key not in self.prompts:
+        """Update prompt for a specific model."""
+        if model_key not in self._prompts:
             raise ValueError(f"Invalid model key: {model_key}")
-        self.prompts[model_key] = prompt
-    
+        self._prompts[model_key] = prompt
+
     def get_prompt(self, model_key: str) -> str:
-        """Get model prompt"""
-        return self.prompts.get(model_key, "") 
+        """Get prompt for a specific model."""
+        return self._prompts.get(model_key, "")

@@ -1,183 +1,243 @@
+"""
+Deduplicator - Removes duplicate citations using TF-IDF and cosine similarity.
+Optimized with numpy vectorization for better performance on large datasets.
+"""
+
+import logging
+from typing import Dict, List, Set, Tuple
+
+import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-import logging
 
-class Deduplicator:
-    def __init__(self):
-        """Initialize Deduplicator with required columns for processing"""
-        self.required_columns = ['Title', 'Authors', 'Abstract', 'DOI']
+# Constants
+REQUIRED_COLUMNS = ('Title', 'Authors', 'Abstract', 'DOI')
+CLUSTER_COLUMNS = ('Cluster_ID', 'Index', 'Title', 'Authors', 'DOI', 'Abstract')
 
-    def validate_dataframe(self, df):
-        """
-        Validate if dataframe has required columns
-        
-        Args:
-            df: DataFrame to validate
-            
-        Returns:
-            bool: True if validation passes
-            
-        Raises:
-            ValueError: If required columns are missing
-        """
-        missing_cols = [col for col in self.required_columns if col not in df.columns]
-        if missing_cols:
-            raise ValueError(f"Missing required columns: {', '.join(missing_cols)}")
+
+class UnionFind:
+    """Optimized Union-Find data structure with path compression and union by rank."""
+
+    __slots__ = ('parent', 'rank')
+
+    def __init__(self, n: int):
+        self.parent = list(range(n))
+        self.rank = [0] * n
+
+    def find(self, x: int) -> int:
+        """Find root with path compression."""
+        if self.parent[x] != x:
+            self.parent[x] = self.find(self.parent[x])
+        return self.parent[x]
+
+    def union(self, x: int, y: int) -> bool:
+        """Union by rank. Returns True if union was performed."""
+        root_x, root_y = self.find(x), self.find(y)
+        if root_x == root_y:
+            return False
+
+        # Union by rank
+        if self.rank[root_x] < self.rank[root_y]:
+            root_x, root_y = root_y, root_x
+        self.parent[root_y] = root_x
+        if self.rank[root_x] == self.rank[root_y]:
+            self.rank[root_x] += 1
         return True
 
-    def process_dataframes(self, dataframes, threshold=0.8):
-        """
-        Process multiple dataframes and remove duplicates
-        
-        Args:
-            dataframes: List of DataFrames to process
-            threshold: Similarity threshold for duplicate detection (default: 0.8)
-            
-        Returns:
-            tuple: (unique_df, clusters_df) where:
-                - unique_df: DataFrame containing unique entries
-                - clusters_df: DataFrame containing duplicate clusters
-                
-        Raises:
-            Exception: If deduplication process fails
-        """
-        try:
-            # Validate and combine dataframes
-            for df in dataframes:
-                self.validate_dataframe(df)
-            
-            combined_df = pd.concat(dataframes, ignore_index=True)
-            
-            # Create Title_Author column for similarity comparison
-            combined_df['Title_Author'] = combined_df['Title'].fillna('') + ' ' + combined_df['Authors'].fillna('')
-            
-            # Find duplicate clusters
-            clusters_df, unique_df = self.find_duplicate_clusters(combined_df, threshold)
-            
-            # Ensure output format consistency
-            unique_df = self.standardize_output(unique_df)
-            clusters_df = self.standardize_clusters(clusters_df)
-            
-            return unique_df, clusters_df
-            
-        except Exception as e:
-            logging.error(f"Error in deduplication process: {str(e)}")
-            raise
-
-    def find_duplicate_clusters(self, df, threshold):
-        """
-        Find duplicate clusters using TF-IDF and cosine similarity
-        
-        Args:
-            df: DataFrame to process
-            threshold: Similarity threshold for duplicate detection
-            
-        Returns:
-            tuple: (clusters_df, unique_df) where:
-                - clusters_df: DataFrame containing duplicate clusters
-                - unique_df: DataFrame containing unique entries
-        """
-        # Create TF-IDF vectors for similarity comparison
-        vectorizer = TfidfVectorizer().fit_transform(df['Title_Author'])
-        cosine_sim = cosine_similarity(vectorizer)
-        
-        n = cosine_sim.shape[0]
-        parent = list(range(n))
-        
-        def find(x):
-            """Find the root of a cluster using path compression"""
-            if parent[x] != x:
-                parent[x] = find(parent[x])
-            return parent[x]
-        
-        def union(x, y):
-            """Union two clusters by rank"""
-            rootX = find(x)
-            rootY = find(y)
-            if rootX != rootY:
-                parent[rootY] = rootX
-        
-        # Build clusters using union-find
-        for i in range(n):
-            for j in range(i + 1, n):
-                if cosine_sim[i, j] > threshold:
-                    union(i, j)
-        
-        # Collect clusters and prepare output
-        clusters = {}
-        for i in range(n):
-            root = find(i)
+    def get_clusters(self) -> Dict[int, List[int]]:
+        """Get all clusters as a dictionary."""
+        clusters: Dict[int, List[int]] = {}
+        for i in range(len(self.parent)):
+            root = self.find(i)
             if root not in clusters:
                 clusters[root] = []
             clusters[root].append(i)
-        
-        # Prepare output dataframes
+        return clusters
+
+
+class Deduplicator:
+    """Removes duplicate entries using TF-IDF similarity matching."""
+
+    __slots__ = ()
+
+    def process_dataframes(
+        self,
+        dataframes: List[pd.DataFrame],
+        threshold: float = 0.8
+    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        """
+        Process multiple DataFrames and remove duplicates.
+
+        Args:
+            dataframes: List of DataFrames to process
+            threshold: Similarity threshold (0.0 to 1.0)
+
+        Returns:
+            Tuple of (unique entries DataFrame, duplicate clusters DataFrame)
+        """
+        # Validate input
+        for df in dataframes:
+            self._validate_dataframe(df)
+
+        # Combine all DataFrames
+        combined = pd.concat(dataframes, ignore_index=True)
+
+        # Create combined text for similarity comparison
+        combined['_text'] = (
+            combined['Title'].fillna('') + ' ' +
+            combined['Authors'].fillna('')
+        )
+
+        # Find duplicates
+        unique_df, clusters_df = self._find_duplicates(combined, threshold)
+
+        # Clean up and standardize output
+        unique_df = self._standardize_output(unique_df)
+        clusters_df = self._standardize_clusters(clusters_df)
+
+        return unique_df, clusters_df
+
+    def _validate_dataframe(self, df: pd.DataFrame) -> None:
+        """Validate DataFrame has required columns."""
+        missing = [col for col in REQUIRED_COLUMNS if col not in df.columns]
+        if missing:
+            raise ValueError(f"Missing required columns: {', '.join(missing)}")
+
+    def _find_duplicates(
+        self,
+        df: pd.DataFrame,
+        threshold: float
+    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        """Find duplicate clusters using TF-IDF and cosine similarity."""
+        n = len(df)
+
+        if n == 0:
+            return df.copy(), pd.DataFrame(columns=list(CLUSTER_COLUMNS))
+
+        if n == 1:
+            return df.copy(), pd.DataFrame(columns=list(CLUSTER_COLUMNS))
+
+        # Compute TF-IDF vectors
+        vectorizer = TfidfVectorizer(
+            lowercase=True,
+            strip_accents='unicode',
+            stop_words='english',
+            max_features=10000  # Limit features for performance
+        )
+
+        try:
+            tfidf_matrix = vectorizer.fit_transform(df['_text'])
+        except ValueError:
+            # Empty vocabulary - no valid text to compare
+            return df.copy(), pd.DataFrame(columns=list(CLUSTER_COLUMNS))
+
+        # Compute similarity matrix efficiently
+        # For large datasets, process in batches
+        uf = UnionFind(n)
+
+        if n > 1000:
+            # Batch processing for large datasets
+            self._batch_similarity(tfidf_matrix, threshold, uf)
+        else:
+            # Direct computation for smaller datasets
+            similarity = cosine_similarity(tfidf_matrix)
+            # Use numpy to find pairs above threshold
+            rows, cols = np.where(similarity > threshold)
+            for i, j in zip(rows, cols):
+                if i < j:  # Only process upper triangle
+                    uf.union(i, j)
+
+        # Build output DataFrames
+        clusters = uf.get_clusters()
+        return self._build_output(df, clusters)
+
+    def _batch_similarity(
+        self,
+        tfidf_matrix,
+        threshold: float,
+        uf: UnionFind,
+        batch_size: int = 500
+    ) -> None:
+        """Compute similarity in batches for memory efficiency."""
+        n = tfidf_matrix.shape[0]
+
+        for i in range(0, n, batch_size):
+            end_i = min(i + batch_size, n)
+            batch = tfidf_matrix[i:end_i]
+
+            # Compare batch with all remaining rows
+            for j in range(i, n, batch_size):
+                end_j = min(j + batch_size, n)
+                other = tfidf_matrix[j:end_j]
+
+                sim = cosine_similarity(batch, other)
+                rows, cols = np.where(sim > threshold)
+
+                for r, c in zip(rows, cols):
+                    abs_r, abs_c = i + r, j + c
+                    if abs_r < abs_c:
+                        uf.union(abs_r, abs_c)
+
+    def _build_output(
+        self,
+        df: pd.DataFrame,
+        clusters: Dict[int, List[int]]
+    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        """Build output DataFrames from clusters."""
         cluster_data = []
         unique_indices = []
-        
+
         for cluster_id, indices in clusters.items():
             if len(indices) > 1:
-                for index in indices:
+                # Multiple items in cluster - these are duplicates
+                for idx in indices:
+                    row = df.iloc[idx]
                     cluster_data.append({
-                        "Cluster_ID": cluster_id,
-                        "Index": index,
-                        "Title": df.iloc[index]["Title"],
-                        "Authors": df.iloc[index]["Authors"],
-                        "DOI": df.iloc[index]["DOI"],
-                        "Abstract": df.iloc[index]["Abstract"]
+                        'Cluster_ID': cluster_id,
+                        'Index': idx,
+                        'Title': row.get('Title', ''),
+                        'Authors': row.get('Authors', ''),
+                        'DOI': row.get('DOI', ''),
+                        'Abstract': row.get('Abstract', '')
                     })
-                unique_indices.append(indices[0])  # Keep first occurrence
+                # Keep first occurrence as unique
+                unique_indices.append(indices[0])
             else:
+                # Single item - unique entry
                 unique_indices.extend(indices)
-        
-        clusters_df = pd.DataFrame(cluster_data) if cluster_data else pd.DataFrame(columns=["Cluster_ID", "Index", "Title", "Authors", "DOI", "Abstract"])
-        unique_df = df.iloc[unique_indices].copy()
-        
-        # Reset index to ensure it starts from 0
-        unique_df = unique_df.reset_index(drop=True)
-        # Add Index column that matches NBIB/RIS format
-        unique_df.index.name = 'Index'
-        
-        return clusters_df, unique_df
 
-    def standardize_output(self, df):
-        """
-        Ensure output dataframe has consistent format
-        
-        Args:
-            df: DataFrame to standardize
-            
-        Returns:
-            DataFrame with standardized format
-        """
-        # Make sure Index is properly set
-        if 'Index' not in df.index.name:
+        # Build DataFrames
+        clusters_df = pd.DataFrame(cluster_data) if cluster_data else pd.DataFrame(
+            columns=list(CLUSTER_COLUMNS)
+        )
+
+        unique_df = df.iloc[unique_indices].copy()
+        unique_df = unique_df.reset_index(drop=True)
+        unique_df.index.name = 'Index'
+
+        # Remove temporary column
+        if '_text' in unique_df.columns:
+            unique_df = unique_df.drop(columns=['_text'])
+
+        return unique_df, clusters_df
+
+    def _standardize_output(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Standardize output DataFrame format."""
+        if df.index.name != 'Index':
             df = df.reset_index(drop=True)
             df.index.name = 'Index'
-        
-        # Ensure all required columns exist
-        required_columns = ['Title', 'Authors', 'Abstract', 'DOI']
-        for col in required_columns:
-            if col not in df.columns:
-                df[col] = ''
-        
-        # Select and order columns while preserving the index
-        df = df[required_columns]
-        return df
 
-    def standardize_clusters(self, df):
-        """
-        Ensure clusters dataframe has consistent format
-        
-        Args:
-            df: DataFrame containing cluster information
-            
-        Returns:
-            DataFrame with standardized cluster format
-        """
-        required_columns = ['Cluster_ID', 'Index', 'Title', 'Authors', 'DOI', 'Abstract']
-        for col in required_columns:
+        # Ensure required columns exist
+        for col in REQUIRED_COLUMNS:
             if col not in df.columns:
                 df[col] = ''
-        return df[required_columns] 
+
+        return df[list(REQUIRED_COLUMNS)]
+
+    def _standardize_clusters(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Standardize clusters DataFrame format."""
+        for col in CLUSTER_COLUMNS:
+            if col not in df.columns:
+                df[col] = ''
+        return df[list(CLUSTER_COLUMNS)]

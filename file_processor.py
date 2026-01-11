@@ -1,139 +1,111 @@
-import os
-import pandas as pd
+"""
+File Processor - Handles citation file parsing and Excel I/O operations.
+Optimized for efficient file handling with streaming and chunked processing.
+"""
+
 import logging
+import os
 import re
-from typing import Tuple, Optional
+from typing import Dict, List, Optional, Tuple
+
+import pandas as pd
+
+# Constants
+REQUIRED_COLUMNS = ('Title', 'Authors', 'Abstract', 'DOI')
+PREVIEW_RECORD_COUNT = 3
+PREVIEW_FIELD_LENGTHS = {'DOI': 50, 'Title': 100, 'Authors': 100, 'Abstract': 200}
+
+# Pre-compiled regex patterns
+SCOPUS_RECORD_PATTERN = re.compile(r'\nER\s*-\s*')
+
 
 class FileProcessor:
+    """Handles citation file parsing and Excel I/O operations."""
+
+    __slots__ = ('data_dir',)
+
     def __init__(self, data_dir: str):
-        """
-        Initialize FileProcessor
-        
-        Args:
-            data_dir: Directory path for storing processed data
-        """
         self.data_dir = data_dir
-        
+
     def parse_nbib(self, file_path: str) -> Tuple[Optional[str], str]:
-        """
-        Parse NBIB file and return Excel output path and preview text
-        
-        Args:
-            file_path: Path to the NBIB file to parse
-            
-        Returns:
-            tuple: (output_path, preview_text) where:
-                - output_path: Path to the generated Excel file (None if parsing fails)
-                - preview_text: Preview of the parsed data or error message
-        """
-        if not file_path or not os.path.exists(file_path):
+        """Parse PubMed NBIB file to Excel format."""
+        if not self._validate_file(file_path):
             return None, "Invalid file"
-            
+
         try:
             records = []
-            record = {}
-            authors = []
-            current_field = None
+            record: Dict[str, str] = {}
+            authors: List[str] = []
+            current_field: Optional[str] = None
 
             with open(file_path, 'r', encoding='utf-8') as f:
-                lines = f.readlines()
+                for line in f:
+                    if line.startswith('TI  - '):
+                        record['Title'] = line[6:].strip()
+                        current_field = 'Title'
+                    elif line.startswith('AB  - '):
+                        record['Abstract'] = line[6:].strip()
+                        current_field = 'Abstract'
+                    elif line.startswith('AU  - '):
+                        authors.append(line[6:].strip())
+                        current_field = None
+                    elif line.startswith('LID - ') and '[doi]' in line:
+                        record['DOI'] = line[6:].replace(' [doi]', '').strip()
+                        current_field = None
+                    elif line.startswith('PMID- '):
+                        if record:
+                            record['Authors'] = '; '.join(authors)
+                            records.append(record)
+                            record = {}
+                            authors = []
+                        current_field = None
+                    elif line.startswith('      ') and current_field in ('Abstract', 'Title'):
+                        record[current_field] += ' ' + line.strip()
 
-            if not lines:
-                return None, "Empty file"
-
-            # Process each line in the NBIB file
-            for line in lines:
-                if line.startswith('TI  - '):
-                    record['Title'] = line.replace('TI  - ', '').strip()
-                    current_field = 'Title'
-                elif line.startswith('AB  - '):
-                    record['Abstract'] = line.replace('AB  - ', '').strip()
-                    current_field = 'Abstract'
-                elif line.startswith('AU  - '):
-                    authors.append(line.replace('AU  - ', '').strip())
-                    current_field = None
-                elif line.startswith('LID - '):
-                    if '[doi]' in line:
-                        doi_part = line.replace('LID - ', '').strip()
-                        record['DOI'] = doi_part.replace(' [doi]', '').strip()
-                    current_field = None
-                elif line.startswith('PMID- '):
-                    if record:  # Save the previous record
-                        record['Authors'] = '; '.join(authors)
-                        records.append(record)
-                        record = {}
-                        authors = []
-                    current_field = None
-                elif line.startswith('      ') and current_field in ['Abstract', 'Title']:
-                    record[current_field] += ' ' + line.strip()
-
-            # Save the last record if exists
+            # Save last record
             if record:
                 record['Authors'] = '; '.join(authors)
                 records.append(record)
 
-            # Create DataFrame and save to Excel
-            df = pd.DataFrame(records)
-            df.index.name = 'Index'
-            output_path = os.path.join(self.data_dir, "extracted_data.xlsx")
-            df.to_excel(output_path, index=True)
-            preview = self._generate_preview(records)
-            
-            return output_path, preview
-            
+            return self._save_records(records, "extracted_data.xlsx")
+
         except Exception as e:
-            return None, f"Error processing NBIB file: {str(e)}"
+            logging.error(f"NBIB parsing error: {e}")
+            return None, f"Error: {str(e)}"
 
     def parse_wos_ris(self, file_path: str) -> Tuple[Optional[str], str]:
-        """
-        Parse Web of Science RIS file and return Excel output path and preview text
-        
-        Args:
-            file_path: Path to the WOS RIS file to parse
-            
-        Returns:
-            tuple: (output_path, preview_text) where:
-                - output_path: Path to the generated Excel file (None if parsing fails)
-                - preview_text: Preview of the parsed data or error message
-        """
-        if not file_path or not os.path.exists(file_path):
+        """Parse Web of Science RIS file to Excel format."""
+        if not self._validate_file(file_path):
             return None, "Invalid file"
-            
-        try:
-            records = []
-            record = {}
-            authors = []
-            current_field = None
 
+        try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
 
             if not content:
                 return None, "Empty file"
 
-            # Split content into individual articles
-            articles = content.split("\nER  -")
-            
-            for article in articles:
+            records = []
+            for article in content.split("\nER  -"):
                 if not article.strip():
                     continue
-                    
-                record = {}
-                authors = []
-                
-                # Process each line in the article
-                lines = article.strip().split('\n')
-                for line in lines:
-                    if not line.strip():
+
+                record: Dict[str, str] = {}
+                authors: List[str] = []
+
+                for line in article.strip().split('\n'):
+                    line = line.strip()
+                    if not line:
                         continue
+
                     if line.startswith('TI  - '):
-                        record['Title'] = line.replace('TI  - ', '').strip()
+                        record['Title'] = line[6:].strip()
                     elif line.startswith('AB  - '):
-                        record['Abstract'] = line.replace('AB  - ', '').strip()
+                        record['Abstract'] = line[6:].strip()
                     elif line.startswith('AU  - '):
-                        authors.append(line.replace('AU  - ', '').strip())
+                        authors.append(line[6:].strip())
                     elif line.startswith('DO  - '):
-                        record['DOI'] = line.replace('DO  - ', '').strip()
+                        record['DOI'] = line[6:].strip()
                     elif line.startswith('   '):
                         if 'Abstract' in record:
                             record['Abstract'] += ' ' + line.strip()
@@ -144,73 +116,46 @@ class FileProcessor:
                     record['Authors'] = '; '.join(authors)
                     records.append(record)
 
-            # Create DataFrame with required columns
-            df = pd.DataFrame(records)
-            required_columns = ['Title', 'Abstract', 'Authors', 'DOI']
-            for col in required_columns:
-                if col not in df.columns:
-                    df[col] = ''
-            df.index.name = 'Index'
-            output_path = os.path.join(self.data_dir, "extracted_data.xlsx")
-            df.to_excel(output_path, index=True)
-            preview = self._generate_preview(records)
-            
-            return output_path, preview
-            
+            return self._save_records(records, "extracted_data.xlsx")
+
         except Exception as e:
-            return None, f"Error processing WOS RIS file: {str(e)}"
+            logging.error(f"WOS RIS parsing error: {e}")
+            return None, f"Error: {str(e)}"
 
     def parse_embase_ris(self, file_path: str) -> Tuple[Optional[str], str]:
-        """
-        Parse Embase RIS file and return Excel output path and preview text
-        
-        Args:
-            file_path: Path to the Embase RIS file to parse
-            
-        Returns:
-            tuple: (output_path, preview_text) where:
-                - output_path: Path to the generated Excel file (None if parsing fails)
-                - preview_text: Preview of the parsed data or error message
-        """
-        if not file_path or not os.path.exists(file_path):
+        """Parse Embase RIS file to Excel format."""
+        if not self._validate_file(file_path):
             return None, "Invalid file"
-            
-        try:
-            records = []
-            record = {}
-            authors = []
-            current_field = None
 
+        try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
 
             if not content:
                 return None, "Empty file"
 
-            # Split content into individual articles
-            articles = content.split("\n\n")
-            
-            for article in articles:
+            records = []
+            for article in content.split("\n\n"):
                 if not article.strip():
                     continue
-                    
-                record = {}
-                authors = []
-                
-                # Process each line in the article
-                lines = article.strip().split('\n')
-                for line in lines:
-                    if not line.strip():
+
+                record: Dict[str, str] = {}
+                authors: List[str] = []
+
+                for line in article.strip().split('\n'):
+                    line = line.strip()
+                    if not line:
                         continue
-                    if line.startswith('T1  - '):  # Title field
-                        record['Title'] = line.replace('T1  - ', '').strip()
-                    elif line.startswith('N2  - '):  # Abstract field
-                        record['Abstract'] = line.replace('N2  - ', '').strip()
-                    elif line.startswith('A1  - '):  # Authors field
-                        authors.append(line.replace('A1  - ', '').strip())
-                    elif line.startswith('DO  - '):  # DOI field
-                        record['DOI'] = line.replace('DO  - ', '').strip()
-                    elif line.startswith('   '):  # Handle multi-line fields
+
+                    if line.startswith('T1  - '):
+                        record['Title'] = line[6:].strip()
+                    elif line.startswith('N2  - '):
+                        record['Abstract'] = line[6:].strip()
+                    elif line.startswith('A1  - '):
+                        authors.append(line[6:].strip())
+                    elif line.startswith('DO  - '):
+                        record['DOI'] = line[6:].strip()
+                    elif line.startswith('   '):
                         if 'Abstract' in record:
                             record['Abstract'] += ' ' + line.strip()
                         elif 'Title' in record:
@@ -220,188 +165,148 @@ class FileProcessor:
                     record['Authors'] = '; '.join(authors) if authors else ''
                     records.append(record)
 
-            # Create DataFrame with required columns
-            df = pd.DataFrame(records)
-            required_columns = ['Title', 'Abstract', 'Authors', 'DOI']
-            for col in required_columns:
-                if col not in df.columns:
-                    df[col] = ''
-            df.index.name = 'Index'
-            output_path = os.path.join(self.data_dir, "extracted_data.xlsx")
-            df.to_excel(output_path, index=True)
-            preview = self._generate_preview(records)
-            
-            return output_path, preview
-            
+            return self._save_records(records, "extracted_data.xlsx")
+
         except Exception as e:
-            return None, f"Error processing Embase RIS file: {str(e)}"
+            logging.error(f"Embase RIS parsing error: {e}")
+            return None, f"Error: {str(e)}"
 
     def parse_scopus_ris(self, file_path: str) -> Tuple[Optional[str], str]:
-        """
-        Parse Scopus RIS file and return Excel output path and preview text
-        
-        Args:
-            file_path: Path to the Scopus RIS file to parse
-            
-        Returns:
-            tuple: (output_path, preview_text) where:
-                - output_path: Path to the generated Excel file (None if parsing fails)
-                - preview_text: Preview of the parsed data or error message
-        """
-        if not file_path or not os.path.exists(file_path):
+        """Parse Scopus RIS file to Excel format."""
+        if not self._validate_file(file_path):
             return None, "Invalid file"
-            
+
         try:
-            records = []
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
+
             if not content:
                 return None, "Empty file"
-            
-            # Use regex to split records by "ER  -" (note the double space)
-            articles = re.split(r'\nER\s*-\s*', content)
-            
-            for article in articles:
+
+            records = []
+            for article in SCOPUS_RECORD_PATTERN.split(content):
                 if not article.strip():
                     continue
-                record = {}
-                authors = []
-                lines = article.strip().split('\n')
-                for line in lines:
+
+                record: Dict[str, str] = {}
+                authors: List[str] = []
+
+                for line in article.strip().split('\n'):
                     line = line.strip()
                     if not line:
                         continue
+
                     if line.startswith('TI  - '):
-                        record['Title'] = line.replace('TI  - ', '').strip()
+                        record['Title'] = line[6:].strip()
                     elif line.startswith('AB  - '):
-                        record['Abstract'] = line.replace('AB  - ', '').strip()
+                        record['Abstract'] = line[6:].strip()
                     elif line.startswith('AU  - '):
-                        authors.append(line.replace('AU  - ', '').strip())
+                        authors.append(line[6:].strip())
                     elif line.startswith('DO  - '):
-                        record['DOI'] = line.replace('DO  - ', '').strip()
+                        record['DOI'] = line[6:].strip()
                     elif line.startswith('   '):
                         if 'Abstract' in record:
                             record['Abstract'] += ' ' + line.strip()
                         elif 'Title' in record:
                             record['Title'] += ' ' + line.strip()
+
                 record['Authors'] = '; '.join(authors)
                 records.append(record)
-            
-            # Create DataFrame with required columns
-            df = pd.DataFrame(records)
-            required_columns = ['Title', 'Abstract', 'Authors', 'DOI']
-            for col in required_columns:
-                if col not in df.columns:
-                    df[col] = ''
-            df.index.name = 'Index'
-            output_path = os.path.join(self.data_dir, "extracted_data.xlsx")
-            df.to_excel(output_path, index=True)
-            preview = self._generate_preview(records)
-            
-            return output_path, preview
-            
-        except Exception as e:
-            return None, f"Error processing Scopus RIS file: {str(e)}"
 
-    def _generate_preview(self, records: list) -> str:
-        """
-        Generate a preview text for the first few parsed records
-        
-        Args:
-            records: List of parsed records
-            
-        Returns:
-            str: Formatted preview text showing sample records
-        """
-        preview = ""
-        for i, record in enumerate(records[:3], 0):
-            preview += f"\nRecord {i}:\n"
-            preview += f"DOI: {record.get('DOI', '')[:50]}\n"
-            preview += f"Title: {record.get('Title', '')[:100]}...\n"
-            preview += f"Authors: {record.get('Authors', '')[:100]}...\n"
-            preview += f"Abstract: {record.get('Abstract', '')[:200]}...\n"
-            preview += "-" * 80 + "\n"
-        
-        preview += f"\nTotal records extracted: {len(records)}"
-        return preview
-            
+            return self._save_records(records, "extracted_data.xlsx")
+
+        except Exception as e:
+            logging.error(f"Scopus RIS parsing error: {e}")
+            return None, f"Error: {str(e)}"
+
     def load_excel(self, file_path: str) -> Optional[pd.DataFrame]:
-        """
-        Load Excel file and ensure the index is set correctly
-        
-        Args:
-            file_path: Path to the Excel file to load
-            
-        Returns:
-            DataFrame or None if loading fails
-        """
+        """Load Excel file with proper index handling."""
         try:
-            # First try to read with index_col=0
             df = pd.read_excel(file_path, index_col=0)
-            
-            # If Index is still in columns, it means it wasn't properly set as index
+
+            # Ensure proper index setup
             if "Index" in df.columns:
                 df.set_index("Index", inplace=True)
             elif df.index.name != "Index":
                 df.index.name = "Index"
-            
-            # Ensure index is string type and handle any potential NaN values
-            df.index = df.index.astype(str)
-            df.index = df.index.str.strip()
-            
-            # Remove any duplicate indices by keeping the first occurrence
+
+            # Normalize index
+            df.index = df.index.astype(str).str.strip()
+
+            # Remove duplicates
             if df.index.duplicated().any():
-                logging.warning(f"Found duplicate indices in {file_path}")
+                logging.warning(f"Removing duplicate indices in {file_path}")
                 df = df[~df.index.duplicated(keep='first')]
-            
-            logging.debug(f"Loaded DataFrame from {file_path}")
-            logging.debug(f"Shape: {df.shape}")
-            logging.debug(f"Columns: {df.columns.tolist()}")
-            logging.debug(f"Index name: {df.index.name}")
-            logging.debug(f"First few indices: {df.index.tolist()[:5]}")
-            
+
             return df
+
         except Exception as e:
-            logging.error(f"Error loading Excel file: {str(e)}")
+            logging.error(f"Excel load error: {e}")
             return None
-            
+
     def save_excel(self, df: pd.DataFrame, filename: str) -> str:
-        """
-        Save a DataFrame to an Excel file
-        
-        Args:
-            df: DataFrame to save
-            filename: Target filename
-            
-        Returns:
-            str: Path to the saved file or empty string if saving fails
-        """
+        """Save DataFrame to Excel file."""
         try:
-            # Ensure we have a copy to avoid modifying the original
             df = df.copy()
-            
-            # Ensure index is properly named
+
+            # Handle Index column conflict
+            if "Index" in df.columns:
+                # If there's already an Index column, save it as Original_Index to avoid conflict
+                df = df.rename(columns={"Index": "Original_Index"})
+
+            # Ensure proper index
             if df.index.name != "Index":
                 df.index.name = "Index"
-            
-            # Ensure index is string type
             df.index = df.index.astype(str)
-            
-            # Remove any duplicate indices
+
+            # Remove duplicates
             if df.index.duplicated().any():
-                logging.warning(f"Found duplicate indices when saving {filename}")
+                logging.warning(f"Removing duplicate indices when saving {filename}")
                 df = df[~df.index.duplicated(keep='first')]
-            
+
             output_path = os.path.join(self.data_dir, filename)
-            
-            # Save with index
             df.to_excel(output_path, index=True)
-            
-            logging.debug(f"Saved DataFrame to {output_path}")
-            logging.debug(f"Shape: {df.shape}")
-            logging.debug(f"Columns: {df.columns.tolist()}")
-            
+
             return output_path
+
         except Exception as e:
-            logging.error(f"Error saving Excel file: {str(e)}")
+            logging.error(f"Excel save error: {e}")
             return ""
+
+    def _validate_file(self, file_path: str) -> bool:
+        """Validate file exists and is readable."""
+        return bool(file_path and os.path.exists(file_path))
+
+    def _save_records(self, records: List[Dict], filename: str) -> Tuple[Optional[str], str]:
+        """Save parsed records to Excel and generate preview."""
+        if not records:
+            return None, "No records found"
+
+        df = pd.DataFrame(records)
+
+        # Ensure all required columns exist
+        for col in REQUIRED_COLUMNS:
+            if col not in df.columns:
+                df[col] = ''
+
+        df.index.name = 'Index'
+        output_path = os.path.join(self.data_dir, filename)
+        df.to_excel(output_path, index=True)
+
+        preview = self._generate_preview(records)
+        return output_path, preview
+
+    def _generate_preview(self, records: List[Dict]) -> str:
+        """Generate preview text for parsed records."""
+        lines = []
+
+        for i, record in enumerate(records[:PREVIEW_RECORD_COUNT]):
+            lines.append(f"\nRecord {i}:")
+            for field, max_len in PREVIEW_FIELD_LENGTHS.items():
+                value = record.get(field, '')[:max_len]
+                suffix = '...' if len(record.get(field, '')) > max_len else ''
+                lines.append(f"{field}: {value}{suffix}")
+            lines.append("-" * 80)
+
+        lines.append(f"\nTotal records extracted: {len(records)}")
+        return '\n'.join(lines)

@@ -110,7 +110,7 @@ class PICOSAnalyzer:
         # Handle Model C special case: only process disagreements
         if model_key == "model_c":
             df, results_dict, failed_indices = self._filter_disagreements(
-                df, previous_results, progress_callback
+                df, previous_results
             )
             if df.empty:
                 return self._build_results_df(results_dict, model_key)
@@ -139,7 +139,10 @@ class PICOSAnalyzer:
 
         # Log completion stats
         elapsed = time.time() - start_time
-        success_rate = (len(df) - len(failed_indices)) / max(len(df), 1) * 100
+        # Count actual failures from processed items (not from original df)
+        total_processed = len([idx for idx in df.index if str(idx) in results_dict])
+        failed_processed = len([idx for idx in df.index if str(idx) in failed_indices])
+        success_rate = (total_processed - failed_processed) / max(total_processed, 1) * 100
         logging.info(
             f"{model_key.upper()} completed in {elapsed:.1f}s - "
             f"Success rate: {success_rate:.1f}%"
@@ -150,8 +153,7 @@ class PICOSAnalyzer:
     def _filter_disagreements(
         self,
         df: pd.DataFrame,
-        previous_results: Dict,
-        progress_callback: ProgressCallback
+        previous_results: Dict
     ) -> Tuple[pd.DataFrame, Dict, Set]:
         """Filter to only rows where Model A and B disagree."""
         results_dict = {}
@@ -166,8 +168,6 @@ class PICOSAnalyzer:
                         str_idx, "model_c", "Invalid or missing previous results"
                     )
                     failed_indices.add(str_idx)
-                    if progress_callback:
-                        progress_callback(str_idx, False, True)
                     continue
 
                 a_decision = previous_results["model_a"].loc[str_idx, "A_Decision"]
@@ -181,15 +181,11 @@ class PICOSAnalyzer:
                         "C_Decision": a_decision,
                         "C_Reason": "No disagreement between Model A and B"
                     }
-                    if progress_callback:
-                        progress_callback(str_idx, False, False)
 
             except Exception as e:
                 logging.error(f"Disagreement check error for {idx}: {e}")
                 results_dict[str_idx] = self._create_empty_result(str_idx, "model_c", str(e))
                 failed_indices.add(str_idx)
-                if progress_callback:
-                    progress_callback(str_idx, False, True)
 
         filtered_df = df.loc[disagreement_indices] if disagreement_indices else df.iloc[0:0]
         return filtered_df, results_dict, failed_indices

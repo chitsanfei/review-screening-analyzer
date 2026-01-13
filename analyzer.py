@@ -110,14 +110,14 @@ class PICOSAnalyzer:
         # Handle Model C special case: only process disagreements
         if model_key == "model_c":
             df, results_dict, failed_indices = self._filter_disagreements(
-                df, previous_results, progress_callback
+                df, previous_results
             )
             if df.empty:
                 return self._build_results_df(results_dict, model_key)
 
         # Process in batches with thread pool
         processor = BatchProcessor(
-            self, model_key, previous_results, results_dict, failed_indices, progress_callback
+            self, model_key, previous_results, results_dict, failed_indices, progress_callback, retry_count=2
         )
 
         with ThreadPoolExecutor(max_workers=threads) as executor:
@@ -139,7 +139,10 @@ class PICOSAnalyzer:
 
         # Log completion stats
         elapsed = time.time() - start_time
-        success_rate = (len(df) - len(failed_indices)) / max(len(df), 1) * 100
+        # Count actual failures from processed items (not from original df)
+        total_processed = len([idx for idx in df.index if str(idx) in results_dict])
+        failed_processed = len([idx for idx in df.index if str(idx) in failed_indices])
+        success_rate = (total_processed - failed_processed) / max(total_processed, 1) * 100
         logging.info(
             f"{model_key.upper()} completed in {elapsed:.1f}s - "
             f"Success rate: {success_rate:.1f}%"
@@ -150,8 +153,7 @@ class PICOSAnalyzer:
     def _filter_disagreements(
         self,
         df: pd.DataFrame,
-        previous_results: Dict,
-        progress_callback: ProgressCallback
+        previous_results: Dict
     ) -> Tuple[pd.DataFrame, Dict, Set]:
         """Filter to only rows where Model A and B disagree."""
         results_dict = {}
@@ -166,8 +168,6 @@ class PICOSAnalyzer:
                         str_idx, "model_c", "Invalid or missing previous results"
                     )
                     failed_indices.add(str_idx)
-                    if progress_callback:
-                        progress_callback(str_idx, False, True)
                     continue
 
                 a_decision = previous_results["model_a"].loc[str_idx, "A_Decision"]
@@ -181,18 +181,38 @@ class PICOSAnalyzer:
                         "C_Decision": a_decision,
                         "C_Reason": "No disagreement between Model A and B"
                     }
-                    if progress_callback:
-                        progress_callback(str_idx, False, False)
 
             except Exception as e:
                 logging.error(f"Disagreement check error for {idx}: {e}")
                 results_dict[str_idx] = self._create_empty_result(str_idx, "model_c", str(e))
                 failed_indices.add(str_idx)
-                if progress_callback:
-                    progress_callback(str_idx, False, True)
 
         filtered_df = df.loc[disagreement_indices] if disagreement_indices else df.iloc[0:0]
         return filtered_df, results_dict, failed_indices
+
+    def count_disagreements(
+        self,
+        df: pd.DataFrame,
+        previous_results: Dict
+    ) -> int:
+        """Count the number of disagreements between Model A and B."""
+        disagreement_count = 0
+
+        for idx in df.index:
+            str_idx = str(idx)
+            try:
+                if not self._validate_previous_results(str_idx, "model_c", previous_results):
+                    continue
+
+                a_decision = previous_results["model_a"].loc[str_idx, "A_Decision"]
+                b_decision = previous_results["model_b"].loc[str_idx, "B_Decision"]
+
+                if a_decision != b_decision:
+                    disagreement_count += 1
+            except Exception:
+                continue
+
+        return disagreement_count
 
     def _validate_previous_results(
         self, idx: str, model_key: str, previous_results: Dict
@@ -265,7 +285,7 @@ class BatchProcessor:
 
     __slots__ = (
         'analyzer', 'model_key', 'previous_results', 'results_dict',
-        'failed_indices', 'progress_callback'
+        'failed_indices', 'progress_callback', 'retry_count'
     )
 
     def __init__(
@@ -275,7 +295,8 @@ class BatchProcessor:
         previous_results: Optional[Dict],
         results_dict: Dict,
         failed_indices: Set,
-        progress_callback: ProgressCallback
+        progress_callback: ProgressCallback,
+        retry_count: int = 2
     ):
         self.analyzer = analyzer
         self.model_key = model_key
@@ -283,6 +304,7 @@ class BatchProcessor:
         self.results_dict = results_dict
         self.failed_indices = failed_indices
         self.progress_callback = progress_callback
+        self.retry_count = retry_count
 
     def process_batch(self, batch_df: pd.DataFrame) -> List[Dict]:
         """Process a single batch of abstracts."""
@@ -390,19 +412,36 @@ class BatchProcessor:
             return None
 
     def _call_api(self, batch_items: List[Dict]) -> List[Dict]:
-        """Call API and process response."""
-        try:
-            prompt = self.analyzer.prompt_manager.get_prompt(self.model_key).format(
-                **self.analyzer.picos_criteria,
-                abstracts_json=json.dumps(batch_items, ensure_ascii=False)
-            )
+        """Call API and process response with retry logic."""
+        prompt = None
+        for attempt in range(self.retry_count + 1):
+            try:
+                if prompt is None:
+                    prompt = self.analyzer.prompt_manager.get_prompt(self.model_key).format(
+                        **self.analyzer.picos_criteria,
+                        abstracts_json=json.dumps(batch_items, ensure_ascii=False)
+                    )
 
-            response = self.analyzer.model_manager.call_api(self.model_key, prompt)
-            return self._process_response(response)
+                response = self.analyzer.model_manager.call_api(self.model_key, prompt)
+                results = self._process_response(response)
 
-        except Exception as e:
-            logging.error(f"API call error: {e}")
-            return []
+                if results:
+                    return results
+
+                if attempt < self.retry_count:
+                    logging.warning(f"API call attempt {attempt + 1} failed, retrying...")
+                    time.sleep(2 ** attempt)  # Exponential backoff
+                else:
+                    logging.error(f"API call failed after {self.retry_count + 1} attempts")
+
+            except Exception as e:
+                logging.error(f"API call error (attempt {attempt + 1}): {e}")
+                if attempt < self.retry_count:
+                    time.sleep(2 ** attempt)  # Exponential backoff
+                else:
+                    logging.error(f"API call failed after {self.retry_count + 1} attempts")
+
+        return []
 
     def _process_response(self, response: Dict) -> List[Dict]:
         """Process and validate API response."""

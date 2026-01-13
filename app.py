@@ -54,25 +54,23 @@ model_results = {}
 
 # Custom CSS for modern design with dark mode support
 CUSTOM_CSS = """
-/* Modern color scheme - Light mode */
 :root {
-    --primary-color: #2563eb;
-    --primary-hover: #1d4ed8;
+    --primary-color: #3b82f6;
+    --primary-hover: #2563eb;
     --success-color: #10b981;
     --warning-color: #f59e0b;
     --error-color: #ef4444;
-    --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --bg-gradient: linear-gradient(135deg, #64748b 0%, #3b82f6 100%);
     --card-bg: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
     --card-border: #e2e8f0;
-    --text-primary: #1e293b;
-    --text-secondary: #64748b;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
     --workflow-bg: #f8fafc;
-    --info-box-bg: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    --info-box-bg: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
     --table-row-alt: #f8fafc;
     --table-border: #e2e8f0;
 }
 
-/* Dark mode */
 @media (prefers-color-scheme: dark) {
     :root {
         --card-bg: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
@@ -80,20 +78,19 @@ CUSTOM_CSS = """
         --text-primary: #f1f5f9;
         --text-secondary: #94a3b8;
         --workflow-bg: #1e293b;
-        --info-box-bg: linear-gradient(135deg, #1e3a5f 0%, #172554 100%);
+        --info-box-bg: linear-gradient(135deg, #1e3a8a 0%, #1e293b 100%);
         --table-row-alt: #1e293b;
         --table-border: #334155;
     }
 }
 
-/* Gradio dark mode class support */
 .dark {
     --card-bg: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
     --card-border: #334155;
     --text-primary: #f1f5f9;
     --text-secondary: #94a3b8;
     --workflow-bg: #1e293b;
-    --info-box-bg: linear-gradient(135deg, #1e3a5f 0%, #172554 100%);
+    --info-box-bg: linear-gradient(135deg, #1e3a8a 0%, #1e293b 100%);
     --table-row-alt: #1e293b;
     --table-border: #334155;
 }
@@ -480,8 +477,15 @@ def process_single_model(input_file, model_key: str, model_a_input=None, model_b
 ├─ 批次大小: {config['batch_size']}
 └─ 开始时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}""")
 
+        # Calculate correct task count for Model C (disagreements only)
+        if model_key == "model_c":
+            num_tasks = analyzer.count_disagreements(df, prev_results)
+            logging.info(f"Model C will process {num_tasks} disagreements")
+        else:
+            num_tasks = total_abstracts
+
         start_time = time.time()
-        progress_cb = create_progress_callback(model_key, total_abstracts, config['batch_size'])
+        progress_cb = create_progress_callback(model_key, num_tasks, config['batch_size'])
         results_df = analyzer.process_batch(df, model_key, prev_results if prev_results else None, progress_callback=progress_cb)
 
         if results_df is None:
@@ -624,7 +628,14 @@ def run_full_pipeline(input_file) -> Generator:
 ├─ 批次大小: {config_c['batch_size']}
 └─ 开始时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}""")
 
-        progress_cb_c = create_progress_callback("model_c", total_abstracts, config_c['batch_size'])
+        # Count disagreements for accurate progress tracking
+        num_disagreements = analyzer.count_disagreements(df, {
+            "model_a": results["model_a"],
+            "model_b": results["model_b"]
+        })
+        logging.info(f"Model C will process {num_disagreements} disagreements")
+
+        progress_cb_c = create_progress_callback("model_c", num_disagreements, config_c['batch_size'])
         results["model_c"] = analyzer.process_batch(df, "model_c", {
             "model_a": results["model_a"],
             "model_b": results["model_b"]
@@ -792,7 +803,7 @@ def create_gradio_interface():
         css=CUSTOM_CSS,
         theme=gr.themes.Soft(
             primary_hue="blue",
-            secondary_hue="purple",
+            secondary_hue="slate",
             neutral_hue="slate",
         )
     ) as interface:

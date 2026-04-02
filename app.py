@@ -799,7 +799,13 @@ def create_gradio_interface():
     """Create the main Gradio interface."""
 
     with gr.Blocks(
-        title="PICOS Analysis System"
+        title="PICOS Analysis System",
+        css=CUSTOM_CSS,
+        theme=gr.themes.Soft(
+            primary_hue="blue",
+            secondary_hue="slate",
+            neutral_hue="slate",
+        ),
     ) as interface:
 
         # Instructions Tab
@@ -990,10 +996,4 @@ if __name__ == "__main__":
     interface.launch(
         server_name="0.0.0.0",
         server_port=7860,
-        css=CUSTOM_CSS,
-        theme=gr.themes.Soft(
-            primary_hue="blue",
-            secondary_hue="slate",
-            neutral_hue="slate",
-        )
     )

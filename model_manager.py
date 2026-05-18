@@ -21,6 +21,12 @@ JSON_CODE_BLOCK_PATTERN = re.compile(r"```json\s*(.*?)\s*```", re.DOTALL)
 THINK_TAG_PATTERN = re.compile(r'<think>.*?</think>', re.DOTALL)
 HTML_TAG_PATTERN = re.compile(r'<[^>]+>')
 WHITESPACE_PATTERN = re.compile(r'\n\s*\n')
+REDACT_KEY_PATTERN = re.compile(r'(sk-[A-Za-z0-9]{40,})')
+
+
+def _redact_sensitive(text: str) -> str:
+    """Redact API keys and other sensitive information from log messages."""
+    return REDACT_KEY_PATTERN.sub('[REDACTED]', text)
 
 
 @dataclass
@@ -150,7 +156,7 @@ class ModelManager:
         except requests.Timeout:
             return f"✗ {config.name} connection timeout"
         except Exception as e:
-            return f"✗ {config.name} error: {str(e)}"
+            return f"✗ {config.name} error: {_redact_sensitive(str(e))}"
 
     def call_api(self, model_key: str, prompt: str) -> Dict:
         """Call API with retry mechanism."""
@@ -189,20 +195,20 @@ class ModelManager:
                 if response.status_code == 200:
                     return self._process_response(model_key, response.text)
 
-                last_error = f"API returned {response.status_code}: {response.text[:200]}"
+                last_error = f"API returned {response.status_code}: {_redact_sensitive(response.text[:200])}"
                 logging.error(f"{config.name} attempt {attempt + 1}: {last_error}")
 
             except requests.Timeout:
                 last_error = "Request timeout"
                 logging.error(f"{config.name} attempt {attempt + 1}: timeout")
             except Exception as e:
-                last_error = str(e)
-                logging.error(f"{config.name} attempt {attempt + 1}: {e}")
+                last_error = _redact_sensitive(str(e))
+                logging.error(f"{config.name} attempt {attempt + 1}: {last_error}")
 
             if attempt < MAX_RETRIES - 1:
                 time.sleep(BASE_RETRY_DELAY * (attempt + 1))
 
-        raise RuntimeError(f"API call failed after {MAX_RETRIES} attempts: {last_error}")
+        raise RuntimeError(f"API call failed after {MAX_RETRIES} attempts: {_redact_sensitive(last_error)}")
 
     def _process_response(self, model_key: str, response: str) -> Dict:
         """Process API response and extract results."""
@@ -216,7 +222,7 @@ class ModelManager:
             return self._process_standard_response(response_obj, model_key)
 
         except Exception as e:
-            logging.error(f"Response processing error for {model_key}: {e}")
+            logging.error(f"Response processing error for {model_key}: {_redact_sensitive(str(e))}")
             return self._get_default_response(model_key)
 
     def _process_standard_response(self, response_obj: Dict, model_key: str) -> Dict:
